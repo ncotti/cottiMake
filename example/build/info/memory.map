@@ -1,0 +1,103 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+rom              0x0000000070010000 0x0000000000001000 xr
+ram              0x0000000070030000 0x0000000000001000 aw
+stack            0x0000000070020000 0x0000000000001000 aw
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+                0x0000000070030000                _dst_addr = 0x70030000
+                0x0000000070020000                _stack_addr = 0x70020000
+
+.text           0x0000000070010000       0xa6
+ *main.o(.text)
+ .text          0x0000000070010000       0x38 build/src/main.o
+                0x0000000070010000                _start
+ *(.text*)
+ .text          0x0000000070010038       0x6e build/src/sub_src/add.o
+                0x0000000070010038                add9
+
+.glue_7         0x00000000700100a8        0x0
+ .glue_7        0x00000000700100a8        0x0 linker stubs
+
+.glue_7t        0x00000000700100a8        0x0
+ .glue_7t       0x00000000700100a8        0x0 linker stubs
+
+.vfp11_veneer   0x00000000700100a8        0x0
+ .vfp11_veneer  0x00000000700100a8        0x0 linker stubs
+
+.v4_bx          0x00000000700100a8        0x0
+ .v4_bx         0x00000000700100a8        0x0 linker stubs
+
+.iplt           0x00000000700100a8        0x0
+ .iplt          0x00000000700100a8        0x0 build/src/main.o
+
+.rel.dyn        0x00000000700100a8        0x0
+ .rel.iplt      0x00000000700100a8        0x0 build/src/main.o
+
+.data           0x00000000700100a6        0x0
+ *(.data*)
+ .data          0x00000000700100a6        0x0 build/src/main.o
+ .data          0x00000000700100a6        0x0 build/src/sub_src/add.o
+
+.igot.plt       0x00000000700100a8        0x0
+ .igot.plt      0x00000000700100a8        0x0 build/src/main.o
+
+.bss            0x00000000700100a6        0x2
+                0x00000000700100a8                . = ALIGN (0x4)
+ *fill*         0x00000000700100a6        0x2 
+                0x00000000700100a8                __bss_start__ = .
+ *(.bss*)
+ .bss           0x00000000700100a8        0x0 build/src/main.o
+ .bss           0x00000000700100a8        0x0 build/src/sub_src/add.o
+                0x00000000700100a8                __bss_end__ = .
+LOAD build/src/main.o
+LOAD build/src/sub_src/add.o
+OUTPUT(build/exe.elf elf32-littlearm)
+
+.ARM.attributes
+                0x0000000000000000       0x2f
+ .ARM.attributes
+                0x0000000000000000       0x14 build/src/main.o
+ .ARM.attributes
+                0x0000000000000014       0x33 build/src/sub_src/add.o
+
+.comment        0x0000000000000000       0x24
+ .comment       0x0000000000000000       0x24 build/src/sub_src/add.o
+                                         0x25 (size before relaxing)
+
+.note.GNU-stack
+                0x0000000000000000        0x0
+ .note.GNU-stack
+                0x0000000000000000        0x0 build/src/sub_src/add.o
+
+.debug_line     0x0000000000000000       0x8b
+ .debug_line    0x0000000000000000       0x47 build/src/main.o
+ .debug_line    0x0000000000000047       0x44 build/src/sub_src/add.o
+
+.debug_info     0x0000000000000000      0x12a
+ .debug_info    0x0000000000000000       0x5b build/src/main.o
+ .debug_info    0x000000000000005b       0xcf build/src/sub_src/add.o
+
+.debug_abbrev   0x0000000000000000       0x69
+ .debug_abbrev  0x0000000000000000       0x14 build/src/main.o
+ .debug_abbrev  0x0000000000000014       0x55 build/src/sub_src/add.o
+
+.debug_aranges  0x0000000000000000       0x40
+ .debug_aranges
+                0x0000000000000000       0x20 build/src/main.o
+ .debug_aranges
+                0x0000000000000020       0x20 build/src/sub_src/add.o
+
+.debug_ranges   0x0000000000000000       0x10
+ .debug_ranges  0x0000000000000000       0x10 build/src/sub_src/add.o
+
+.debug_str      0x0000000000000000       0xd0
+ .debug_str     0x0000000000000000       0xd0 build/src/sub_src/add.o
+                                         0xd5 (size before relaxing)
+
+.debug_frame    0x0000000000000000       0x38
+ .debug_frame   0x0000000000000000       0x38 build/src/sub_src/add.o
