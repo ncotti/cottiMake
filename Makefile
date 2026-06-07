@@ -7,6 +7,13 @@ SHELL=/bin/bash
 .DEFAULT_GOAL := help
 
 #------------------------------------------------------------------------------
+# Includes
+#------------------------------------------------------------------------------
+
+include colors.mk
+include constants.mk
+
+#------------------------------------------------------------------------------
 # User modifiable variables
 #------------------------------------------------------------------------------
 # E.g.: arm-none-eabi-, arm-linux-gnueabihf-, (left empty), etc
@@ -27,6 +34,8 @@ EXE ?= exe
 # Name of the gdb script (can be empty)
 GDB_SCRIPT ?=
 
+include arg_check.mk
+
 #------------------------------------------------------------------------------
 # Binutils
 #------------------------------------------------------------------------------
@@ -43,13 +52,6 @@ endif
 LD 			:= $(TOOLCHAIN)gcc
 OBJDUMP 	:= $(TOOLCHAIN)objdump
 OBJCOPY 	:= $(TOOLCHAIN)objcopy
-
-#------------------------------------------------------------------------------
-# Miscellaneous constants
-#------------------------------------------------------------------------------
-PRINT_CHECKMARK 	:= printf "\033[0;32m\342\234\224\n\033[0m"
-PRINT_CROSS 		:= printf "\033[0;31m\342\235\214\n\033[0m"
-PRINT_WARNING		:= printf "\033[0;33m\342\232\240\n\033[0m"
 
 #------------------------------------------------------------------------------
 # File location
@@ -98,34 +100,34 @@ INFO_SRC_DIRS := $(addprefix $(BUILD_DIR)/$(INFO_DIR)/, $(SRC_DIRS))
 #------------------------------------------------------------------------------
 
 # When you call "make compile", the Makefile will be re-called but prepending
-# the "scan-build bear -- make _compile"
+# the "scan-build bear -- make p_compile"
 .PHONY: compile
 compile: $(BUILD_SRC_DIRS) ## Compile all source code, generate ELF file.
 # if [ ! -f $(COMPILE_COMMANDS) ]; then \
-# 	scan-build -o $(SCAN_BUILD_DIR) bear --output $(COMPILE_COMMANDS) -- $(MAKE) _compile; \
+# 	scan-build -o $(SCAN_BUILD_DIR) bear --output $(COMPILE_COMMANDS) -- $(MAKE) p_compile; \
 # else \
-# 	scan-build --use-cc=$(CC) -o $(SCAN_BUILD_DIR) -V $(MAKE) _compile; \
+# 	scan-build --use-cc=$(CC) -o $(SCAN_BUILD_DIR) -V $(MAKE) p_compile; \
 # fi
 	if [ ! -f $(COMPILE_COMMANDS) ]; then \
-		bear --output $(COMPILE_COMMANDS) -- $(MAKE) _compile; \
+		bear --output $(COMPILE_COMMANDS) -- $(MAKE) p_compile; \
 	else \
-		$(MAKE) _compile; \
+		$(MAKE) p_compile; \
 	fi
 	$(MAKE) tidy
 
 
 # Actual compile command
-.PHONY: _compile
-_compile: $(ELF)
+.PHONY: p_compile
+p_compile: $(ELF) ## Private compile command
 
 .PHONY: tidy
-tidy: $(SRCS)
+tidy: $(SRCS) ## Do static analysis with clang-tidy
 	clang-tidy --verify-config
 	clang-tidy $^ -p $(COMPILE_COMMANDS)
 
 .PHONY: help
 help: ## Display this message.
-	grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+	grep -E '^[a-zA-Z_-]+:.*?## .*$$' "Makefile" \
 	| sort \
 	| awk 'BEGIN {FS = ":.*?## "}; \
 	{printf "\033[36m%-10s\033[0m %s\n", $$1, $$2}'
@@ -149,11 +151,11 @@ run: compile ## Execute compile program
 	$(ELF)
 
 .PHONY: debug
-debug: compile
+debug: compile ## Debug with gdb
 	gdb $(ELF)
 
 .PHONY: test
-test: compile
+test: compile ## Compile and execute tests
 	$(MAKE) -f test.mk \
 		BUILD_DIR="$(BUILD_DIR)" \
 		CFLAGS="$(CFLAGS)" \

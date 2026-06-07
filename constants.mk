@@ -1,0 +1,4 @@
+PRINT_CHECKMARK 	:= printf "\033[0;32m\342\234\224\n\033[0m"
+PRINT_CROSS 		:= printf "\033[0;31m\342\235\214\n\033[0m"
+PRINT_WARNING		:= printf "\033[0;33m\342\232\240\n\033[0m"
+
