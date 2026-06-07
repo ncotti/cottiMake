@@ -4,3 +4,6 @@
 [submodule "test/framework/bats-support"]
 	path = test/framework/bats-support
 	url = https://github.com/bats-core/bats-support.git
+[submodule "test/framework/bats-assert"]
+	path = test/framework/bats-assert
+	url = https://github.com/bats-core/bats-assert.git
