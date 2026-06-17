@@ -1,0 +1,60 @@
+include messages.mk
+
+
+
+
+
+# Only execute these checks for compilation targets
+ifeq ($(filter help clean,$(GOALS)),)
+
+# SRC_DIRS must be defined
+ifndef SRC_DIRS
+$(error $(MSG_NO_SRC_DIRS))
+endif
+
+
+# There should not be duplicates
+DUPLICATES := $(shell printf "%s\n" $(strip $(SRC_DIRS)) | tr ' ' '\n' | sort | uniq -d)
+ifneq ($(strip $(DUPLICATES)),)
+$(error $(MSG_REPEATED_SRC_DIRS) $(DUPLICATES))
+endif
+
+# There should not be duplicates
+DUPLICATES := $(shell printf "%s\n" $(strip $(INC_DIRS)) | tr ' ' '\n' | sort | uniq -d)
+ifneq ($(strip $(DUPLICATES)),)
+$(error $(MSG_REPEATED_INC_DIRS) $(DUPLICATES))
+endif
+
+
+# By sorting, we remove duplicates
+SRC_DIRS := $(sort $(SRC_DIRS))
+INC_DIRS := $(sort $(INC_DIRS))
+
+
+# All source directories must exist and be directories
+NOT_DIRS := $(foreach dir, $(SRC_DIRS), $(shell [ ! -d $(dir) ] && echo "$(dir)"))
+ifneq ($(strip $(NOT_DIRS)),)
+$(error $(MSG_WRONG_SRC_DIRS) $(NOT_DIRS))
+endif
+
+# Source directories must not be empty
+EMPTY_DIRS := $(foreach dir,$(SRC_DIRS), \
+  $(shell find "$(dir)" -maxdepth 1 \( -name "*.c" -o -name "*.s" \) -print -quit | grep -q . || echo "$(dir)"))
+ifneq ($(strip $(EMPTY_DIRS)),)
+$(error $(MSG_EMPTY_SRC_DIR) $(EMPTY_DIRS))
+endif
+
+# All include directories must exist and be directories
+NOT_DIRS := $(foreach dir, $(INC_DIRS), $(shell [ ! -d $(dir) ] && echo "$(dir)"))
+ifneq ($(strip $(NOT_DIRS)),)
+$(error $(MSG_WRONG_INC_DIRS) $(NOT_DIRS))
+endif
+
+# Include directories must not be empty
+EMPTY_DIRS := $(foreach dir,$(INC_DIRS), \
+  $(shell find "$(dir)" -maxdepth 1 \( -name "*.h" \) -print -quit | grep -q . || echo "$(dir)"))
+ifneq ($(strip $(EMPTY_DIRS)),)
+$(error $(MSG_EMPTY_INC_DIR) $(EMPTY_DIRS))
+endif
+
+endif # Not compilation targets

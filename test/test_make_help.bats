@@ -20,6 +20,7 @@ teardown_file() {
     true
 }
 
+## Note: target help should execute even though no variables have been set
 @test "Default target is help" {
     run make -C "${MAKE_DIR}"
     make_output="$output"

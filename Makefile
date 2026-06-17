@@ -6,25 +6,42 @@ SHELL=/bin/bash
 .SILENT:
 .DEFAULT_GOAL := help
 
+GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
+
 #------------------------------------------------------------------------------
 # Includes
 #------------------------------------------------------------------------------
 
 include colors.mk
 include constants.mk
+include messages.mk
 
 #------------------------------------------------------------------------------
-# User modifiable variables
+# Mandatory variables
+# Not declaring these variables before using this Makefile will result in
+# an error
+#------------------------------------------------------------------------------
+
+# White-space separated list of paths where source files are
+SRC_DIRS ?=
+
+#------------------------------------------------------------------------------
+# Default variables
+# All these variables can be modified before including this Makefile
 #------------------------------------------------------------------------------
 # E.g.: arm-none-eabi-, arm-linux-gnueabihf-, (left empty), etc
 TOOLCHAIN ?=
 
-SRC_DIRS ?= src
-HEADER_DIRS ?= inc
+# Repository's root directory. All relative paths will be taken from this path.
+ROOT ?= .
+
+
+INC_DIRS ?=
 
 CFLAGS ?= -Wall -g -Wpedantic
 ASFLAGS ?= -g
-LDFLAGS ?= -g -lncurses -lpanel -lmenu -lform -lcdk -lm
+LDFLAGS ?= -g
+
 # Linker script (can be empty)
 LDSCRIPT ?=
 
@@ -79,10 +96,11 @@ endif
 
 SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c) $(wildcard $(dir)/*.s))
 
-HEADERS := $(foreach dir, $(HEADER_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/*.s))
-HEADER_FLAGS := $(addprefix -I , $(HEADER_DIRS))
+HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/*.s))
+HEADER_FLAGS := $(addprefix -I , $(INC_DIRS))
 
-OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS))
+OBJS := $(patsubst /%,%, $(SRCS))
+OBJS := $(addprefix $(BUILD_DIR)/, $(OBJS))
 OBJS := $(patsubst %.c, %.o, $(OBJS))
 OBJS := $(patsubst %.s, %.o, $(OBJS))
 
@@ -94,6 +112,9 @@ DIS_ASM := $(patsubst %.header, %.d, $(OBJ_HEADERS))
 
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
 INFO_SRC_DIRS := $(addprefix $(BUILD_DIR)/$(INFO_DIR)/, $(SRC_DIRS))
+
+SRCS := $(sort $(SRCS))
+OBJS := $(sort $(OBJS))
 
 #------------------------------------------------------------------------------
 # User targets
@@ -163,6 +184,33 @@ test: compile ## Compile and execute tests
 		CC="$(CC)" \
 		LD="$(LD)" \
 		HEADER_FLAGS="$(HEADER_FLAGS)"
+
+.PHONY: print_src
+print_src:	## Print source files
+	printf "Source files:\n"
+	for src in $(SRCS); do \
+		printf "$${src}\n"; \
+	done
+	printf "\n"
+
+.PHONY: print_obj
+print_obj:	## Print object files
+	printf "Object files:\n"
+	for obj in $(OBJS); do \
+		printf "$${obj}\n"; \
+	done
+	printf "\n"
+
+.PHONY: print_header
+print_header:  ## Print header files
+	printf "Header files:\n"
+	for header in $(HEADERS); do \
+		printf "$${header}\n"; \
+	done
+	printf "\n"
+
+.PHONY: print
+print: print_src print_obj print_header	 ## Print all: source, object and header files
 
 #------------------------------------------------------------------------------
 # Compilation targets
