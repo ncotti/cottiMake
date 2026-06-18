@@ -69,10 +69,8 @@ teardown_file() {
     run make -C "${MAKE_DIR}" print_src \
         SRC_DIRS="${src_dir1} ${src_dir2}"
     assert_success
-
-# Source files are shown one per line, and sorted
+    assert_output --partial "Source files:"
     assert_output --partial --stdin <<EOF
-Source files:
 ${src_file2}
 ${src_file1}
 ${src_file4}
@@ -85,9 +83,8 @@ EOF
     run make -C "${MAKE_DIR}" print_obj \
         SRC_DIRS="${src_dir1} ${src_dir2}"
     assert_success
-
+    assert_output --partial "Object files:"
     assert_output --partial --stdin <<EOF
-Object files:
 ${obj_file2}
 ${obj_file1}
 ${obj_file4}
@@ -108,10 +105,7 @@ EOF
     run make -C "${MAKE_DIR}" print_header \
         SRC_DIRS="${src_dir1}"
     assert_success
-    assert_output --partial --stdin <<EOF
-Header files:
-
-EOF
+    assert_output --partial "Header files:"
 }
 
 @test "Print headers" {
@@ -119,8 +113,8 @@ EOF
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${inc_dir1}"
     assert_success
+    assert_output --partial "Header files:"
     assert_output --partial --stdin <<EOF
-Header files:
 ${inc_file2}
 ${inc_file1}
 
@@ -133,16 +127,21 @@ EOF
         INC_DIRS="${inc_dir1} ${inc_dir2}"
 
     assert_success
+    assert_output --partial "Source files:"
+    assert_output --partial "Object files:"
+    assert_output --partial "Header files:"
     assert_output --partial --stdin <<EOF
-Source files:
 ${src_file2}
 ${src_file1}
 
-Object files:
+EOF
+    assert_output --partial --stdin <<EOF
 ${obj_file2}
 ${obj_file1}
 
-Header files:
+EOF
+
+    assert_output --partial --stdin <<EOF
 ${inc_file2}
 ${inc_file1}
 ${inc_file4}

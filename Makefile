@@ -151,7 +151,7 @@ help: ## Display this message.
 	grep -E '^[a-zA-Z_-]+:.*?## .*$$' "Makefile" \
 	| sort \
 	| awk 'BEGIN {FS = ":.*?## "}; \
-	{printf "\033[36m%-10s\033[0m %s\n", $$1, $$2}'
+	{printf "$(CYAN)%-12s$(NC) %s\n", $$1, $$2}'
 
 .PHONY: binary
 binary: $(BIN) ## Generate binary file, without ELF headers.
@@ -187,7 +187,7 @@ test: compile ## Compile and execute tests
 
 .PHONY: print_src
 print_src:	## Print source files
-	printf "Source files:\n"
+	printf "$(MAGENTA)Source files:$(NC)\n"
 	for src in $(SRCS); do \
 		printf "$${src}\n"; \
 	done
@@ -195,7 +195,7 @@ print_src:	## Print source files
 
 .PHONY: print_obj
 print_obj:	## Print object files
-	printf "Object files:\n"
+	printf "$(MAGENTA)Object files:$(NC)\n"
 	for obj in $(OBJS); do \
 		printf "$${obj}\n"; \
 	done
@@ -203,7 +203,7 @@ print_obj:	## Print object files
 
 .PHONY: print_header
 print_header:  ## Print header files
-	printf "Header files:\n"
+	printf "$(MAGENTA)Header files:$(NC)\n"
 	for header in $(HEADERS); do \
 		printf "$${header}\n"; \
 	done
