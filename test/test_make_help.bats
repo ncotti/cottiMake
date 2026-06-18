@@ -45,7 +45,7 @@ teardown_file() {
 @test "All targets have the .PHONY attribute" {
     targets=$(awk -F ":" '/^[a-zA-Z0-9_-]+:/ {print $1}' Makefile | sort)
 
-    phony_targets=$(awk -F ":" '/^.PHONY:/ {
+    phony_targets=$(awk -F ":|##" '/^.PHONY:/ {
         gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}' Makefile | sort)
 
     assert_equal "${targets}" "${phony_targets}"

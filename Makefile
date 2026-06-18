@@ -122,8 +122,8 @@ OBJS := $(sort $(OBJS))
 
 # When you call "make compile", the Makefile will be re-called but prepending
 # the "scan-build bear -- make p_compile"
-.PHONY: compile
-compile: $(BUILD_SRC_DIRS) ## Compile all source code, generate ELF file.
+.PHONY: compile ## Compile all source code, generate ELF file.
+compile: $(BUILD_SRC_DIRS)
 # if [ ! -f $(COMPILE_COMMANDS) ]; then \
 # 	scan-build -o $(SCAN_BUILD_DIR) bear --output $(COMPILE_COMMANDS) -- $(MAKE) p_compile; \
 # else \
@@ -138,45 +138,46 @@ compile: $(BUILD_SRC_DIRS) ## Compile all source code, generate ELF file.
 
 
 # Actual compile command
-.PHONY: p_compile
-p_compile: $(ELF) ## Private compile command
+.PHONY: p_compile ## Private compile command
+p_compile: $(ELF)
 
-.PHONY: tidy
-tidy: $(SRCS) ## Do static analysis with clang-tidy
+.PHONY: tidy ## Do static analysis with clang-tidy
+tidy: $(SRCS)
 	clang-tidy --verify-config
 	clang-tidy $^ -p $(COMPILE_COMMANDS)
 
-.PHONY: help
-help: ## Display this message.
-	grep -E '^[a-zA-Z_-]+:.*?## .*$$' "Makefile" \
+.PHONY: help ## Display this message.
+help:
+	@grep -E '^\.PHONY:.*## .*$$' Makefile \
 	| sort \
-	| awk 'BEGIN {FS = ":.*?## "}; \
-	{printf "$(CYAN)%-12s$(NC) %s\n", $$1, $$2}'
+	| awk 'BEGIN {FS=":|## "}; \
+	       {gsub(/^[ \t]+|[ \t]+$$/, "", $$2); \
+	        printf "$(CYAN)%-12s$(NC) %s\n", $$2, $$3}'
 
-.PHONY: binary
-binary: $(BIN) ## Generate binary file, without ELF headers.
+.PHONY: binary ## Generate binary file, without ELF headers.
+binary: $(BIN)
 
-.PHONY: headers
-headers: $(OBJ_HEADERS) ## Generate symbol table and section headers for all object files.
+.PHONY: headers ## Generate symbol table and section headers for all object files.
+headers: $(OBJ_HEADERS)
 
-.PHONY: dasm
-dasm: $(DIS_ASM) ## Generate disassemble for all object files and elf file.
+.PHONY: dasm ## Generate disassemble for all object files and elf file.
+dasm: $(DIS_ASM)
 
-.PHONY: clean
-clean: ## Erase contents of build directory.
+.PHONY: clean ## Erase contents of build directory.
+clean:
 	rm -Rf $(BUILD_DIR)
 	echo -n "All files successfully erased "; $(PRINT_CHECKMARK)
 
-.PHONY: run
-run: compile ## Execute compile program
+.PHONY: run ## Execute compile program
+run: compile
 	$(ELF)
 
-.PHONY: debug
-debug: compile ## Debug with gdb
+.PHONY: debug ## Debug with gdb
+debug: compile
 	gdb $(ELF)
 
-.PHONY: test
-test: compile ## Compile and execute tests
+.PHONY: test ## Compile and execute tests
+test: compile
 	$(MAKE) -f test.mk \
 		BUILD_DIR="$(BUILD_DIR)" \
 		CFLAGS="$(CFLAGS)" \
@@ -185,32 +186,32 @@ test: compile ## Compile and execute tests
 		LD="$(LD)" \
 		HEADER_FLAGS="$(HEADER_FLAGS)"
 
-.PHONY: print_src
-print_src:	## Print source files
+.PHONY: print_src ## Print source files
+print_src:
 	printf "$(MAGENTA)Source files:$(NC)\n"
 	for src in $(SRCS); do \
 		printf "$${src}\n"; \
 	done
 	printf "\n"
 
-.PHONY: print_obj
-print_obj:	## Print object files
+.PHONY: print_obj ## Print object files
+print_obj:
 	printf "$(MAGENTA)Object files:$(NC)\n"
 	for obj in $(OBJS); do \
 		printf "$${obj}\n"; \
 	done
 	printf "\n"
 
-.PHONY: print_header
-print_header:  ## Print header files
+.PHONY: print_header ## Print header files
+print_header:
 	printf "$(MAGENTA)Header files:$(NC)\n"
 	for header in $(HEADERS); do \
 		printf "$${header}\n"; \
 	done
 	printf "\n"
 
-.PHONY: print
-print: print_src print_obj print_header	 ## Print all: source, object and header files
+.PHONY: print ## Print all: source, object and header files
+print: print_src print_obj print_header
 
 #------------------------------------------------------------------------------
 # Compilation targets
