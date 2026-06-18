@@ -32,7 +32,8 @@ teardown_file() {
 }
 
 @test "All targets have a help string" {
-    targets=$(awk -F ":" '/^[a-zA-Z0-9_-]+:/ {print $1}' Makefile | sort)
+    targets=$(awk -F ":" '/^[a-zA-Z0-9_-]+:/ {print $1}' Makefile ./*.mk | sort)
+    printf "${targets}"
     targets_qtty=$(echo "${targets}" | wc -l)
 
     help_targets=$(make help | sort | awk '{

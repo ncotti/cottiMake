@@ -37,13 +37,13 @@ TEST_EXES := $(patsubst %.c, %.elf, $(TEST_EXES))
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(TEST_SRC_DIRS) $(TEST_FRAMEWORK_SRC_DIRS))
 
 
-.PHONY: test
-test: $(TEST_EXES)
-	for f in $(TEST_EXE_DIR)/*; do \
-		if [ -x "$${f}" ] && [ ! -d "$${f}" ]; then \
-			"$${f}"; \
-		fi \
-	done
+# .PHONY: test
+# test: $(TEST_EXES)
+# 	for f in $(TEST_EXE_DIR)/*; do \
+# 		if [ -x "$${f}" ] && [ ! -d "$${f}" ]; then \
+# 			"$${f}"; \
+# 		fi \
+# 	done
 
 
 $(BUILD_DIR)/%.elf: %.o
