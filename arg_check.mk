@@ -1,7 +1,4 @@
-include messages.mk
-
-
-
+include $(MAKE_ROOT)/messages.mk
 
 
 # Only execute these checks for compilation targets

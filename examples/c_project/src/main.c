@@ -8,7 +8,7 @@ int main(void) {
     int a = helper_return_two();
     a = add1(a);
 
-    printf("a: %d\n", a);
+    printf("C_project_out: %d\n", a);
 
     return 0;
 }

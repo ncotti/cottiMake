@@ -8,13 +8,18 @@ SHELL=/bin/bash
 
 GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
 
+# Repository's MAKE_ROOT directory. All relative paths will be taken from this path.
+MAKE_ROOT ?= .
+
+MAKE_ROOT := $(patsubst %/,%, $(MAKE_ROOT))
+
 #------------------------------------------------------------------------------
 # Includes
 #------------------------------------------------------------------------------
 
-include colors.mk
-include constants.mk
-include messages.mk
+include $(MAKE_ROOT)/colors.mk
+include $(MAKE_ROOT)/constants.mk
+include $(MAKE_ROOT)/messages.mk
 
 #------------------------------------------------------------------------------
 # Default variables
@@ -28,8 +33,7 @@ SRC_DIRS ?=
 # E.g.: arm-none-eabi-, arm-linux-gnueabihf-, (left empty), etc
 TOOLCHAIN ?=
 
-# Repository's root directory. All relative paths will be taken from this path.
-ROOT ?= .
+
 
 
 INC_DIRS ?=
@@ -47,7 +51,7 @@ EXE ?= exe
 # Name of the gdb script (can be empty)
 GDB_SCRIPT ?=
 
-include arg_check.mk
+include $(MAKE_ROOT)/arg_check.mk
 
 #------------------------------------------------------------------------------
 # Binutils
@@ -70,10 +74,10 @@ OBJCOPY 	:= $(TOOLCHAIN)objcopy
 # File location
 #------------------------------------------------------------------------------
 BUILD_DIR	:= build
-INFO_DIR 	:= info
+INFO_DIR 	:= $(BUILD_DIR)/info
 ELF 		:= $(BUILD_DIR)/$(EXE).elf
 BIN 		:= $(BUILD_DIR)/$(EXE).bin
-MAP			:= $(BUILD_DIR)/$(INFO_DIR)/memory.map
+MAP			:= $(INFO_DIR)/memory.map
 
 COMPILE_COMMANDS := $(BUILD_DIR)/compile_commands.json
 SCAN_BUILD_DIR := $(BUILD_DIR)/scan_build
@@ -95,6 +99,7 @@ SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c) $(wildcard $(dir)/*.s
 HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/*.s))
 HEADER_FLAGS := $(addprefix -I , $(INC_DIRS))
 
+# TODO add _asm to assembly object files
 OBJS := $(patsubst /%,%, $(SRCS))
 OBJS := $(addprefix $(BUILD_DIR)/, $(OBJS))
 OBJS := $(patsubst %.c, %.o, $(OBJS))
@@ -102,12 +107,12 @@ OBJS := $(patsubst %.s, %.o, $(OBJS))
 
 OBJ_HEADERS := $(patsubst %.o, %.header, $(OBJS) $(ELF))
 OBJ_HEADERS := $(patsubst %.elf, %.header, $(OBJ_HEADERS))
-OBJ_HEADERS := $(patsubst $(BUILD_DIR)%, $(BUILD_DIR)/$(INFO_DIR)%, $(OBJ_HEADERS))
+OBJ_HEADERS := $(patsubst $(BUILD_DIR)%, $(INFO_DIR)%, $(OBJ_HEADERS))
 
-DIS_ASM := $(patsubst %.header, %.d, $(OBJ_HEADERS))
+DASM_FILES := $(patsubst %.header, %.d, $(OBJ_HEADERS))
 
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
-INFO_SRC_DIRS := $(addprefix $(BUILD_DIR)/$(INFO_DIR)/, $(SRC_DIRS))
+INFO_SRC_DIRS := $(addprefix $(INFO_DIR)/, $(SRC_DIRS))
 
 SRCS := $(sort $(SRCS))
 OBJS := $(sort $(OBJS))
@@ -118,24 +123,28 @@ OBJS := $(sort $(OBJS))
 
 # When you call "make compile", the Makefile will be re-called but prepending
 # the "scan-build bear -- make p_compile"
-.PHONY: compile ## Compile all source code, generate ELF file.
-compile: $(BUILD_SRC_DIRS)
-# if [ ! -f $(COMPILE_COMMANDS) ]; then \
-# 	scan-build -o $(SCAN_BUILD_DIR) bear --output $(COMPILE_COMMANDS) -- $(MAKE) p_compile; \
-# else \
-# 	scan-build --use-cc=$(CC) -o $(SCAN_BUILD_DIR) -V $(MAKE) p_compile; \
-# fi
-	if [ ! -f $(COMPILE_COMMANDS) ]; then \
-		bear --output $(COMPILE_COMMANDS) -- $(MAKE) p_compile; \
+# .PHONY: compile ## Compile all source code, generate ELF file.
+# compile: $(BUILD_SRC_DIRS)
+# # if [ ! -f $(COMPILE_COMMANDS) ]; then \
+# # 	scan-build -o $(SCAN_BUILD_DIR) bear --output $(COMPILE_COMMANDS) -- $(MAKE) p_compile; \
+# # else \
+# # 	scan-build --use-cc=$(CC) -o $(SCAN_BUILD_DIR) -V $(MAKE) p_compile; \
+# # fi
+# 	if [ ! -f $(COMPILE_COMMANDS) ]; then \
+# 		bear --output $(COMPILE_COMMANDS) -- $(MAKE) p_compile; \
+# 	else \
+# 		$(MAKE) p_compile; \
+# 	fi
+# 	$(MAKE) tidy
+
+.PHONY: compile ## Private compile command
+compile:
+	if $(MAKE) --no-print-directory -q $(ELF); then \
+		printf "$(MSG_COMPILE_DO_NOTHING)"; \
 	else \
-		$(MAKE) p_compile; \
+		$(MAKE) --no-print-directory $(ELF); \
+		printf "$(MSG_COMPILE_OK)"; \
 	fi
-	$(MAKE) tidy
-
-
-# Actual compile command
-.PHONY: p_compile ## Private compile command
-p_compile: $(ELF)
 
 .PHONY: tidy ## Do static analysis with clang-tidy
 tidy: $(SRCS)
@@ -144,25 +153,45 @@ tidy: $(SRCS)
 
 .PHONY: help ## Display this message.
 help:
-	grep -E '^\.PHONY:.*## .*$$' Makefile *.mk \
+	grep -E '^\.PHONY:.*## .*$$' $(MAKE_ROOT)/Makefile $(MAKE_ROOT)/*.mk \
 	| sort \
 	| awk 'BEGIN {FS=":|## "}; \
 	       {gsub(/^[ \t]+|[ \t]+$$/, "", $$3); \
 	        printf "$(CYAN)%-12s$(NC) %s\n", $$3, $$4}'
 
-.PHONY: binary ## Generate binary file, without ELF headers.
-binary: $(BIN)
+.PHONY: bin ## Generate binary file, without ELF headers.
+bin:
+	if $(MAKE) --no-print-directory -q $(BIN); then \
+		printf "$(MSG_COMPILE_DO_NOTHING)"; \
+	else \
+		$(MAKE) --no-print-directory $(BIN); \
+		printf "$(MSG_COMPILE_OK)"; \
+	fi
 
 .PHONY: headers ## Generate symbol table and section headers for all object files.
-headers: $(OBJ_HEADERS)
+headers: 
+	if $(MAKE) --no-print-directory -q $(OBJ_HEADERS); then \
+		printf "$(MSG_HEADERS_DO_NOTHING)"; \
+	else \
+		$(MAKE) --no-print-directory $(OBJ_HEADERS); \
+	fi
 
 .PHONY: dasm ## Generate disassemble for all object files and elf file.
-dasm: $(DIS_ASM)
+dasm:
+	if $(MAKE) --no-print-directory -q $(DASM_FILES); then \
+		printf "$(MSG_DASM_DO_NOTHING)"; \
+	else \
+		$(MAKE) --no-print-directory $(DASM_FILES); \
+	fi
 
 .PHONY: clean ## Erase contents of build directory.
 clean:
-	rm -Rf $(BUILD_DIR)
-	echo -n "All files successfully erased "; $(PRINT_CHECKMARK)
+	if [ -d "$(BUILD_DIR)" ]; then \
+		rm -Rf $(BUILD_DIR); \
+		printf "$(MSG_CLEAN_OK)"; \
+	else \
+		printf "$(MSG_CLEAN_EMPTY)"; \
+	fi
 
 .PHONY: run ## Execute compile program
 run: compile
@@ -182,61 +211,54 @@ test: compile
 		LD="$(LD)" \
 		HEADER_FLAGS="$(HEADER_FLAGS)"
 
-include print_targets.mk
+include $(MAKE_ROOT)/print_targets.mk
+
+# TODO
+include $(MAKE_ROOT)/info_targets.mk
 
 #------------------------------------------------------------------------------
 # Compilation targets
 #------------------------------------------------------------------------------
 # Main executable linking
-$(ELF): $(OBJS)
-	echo -n "Linking everything together... "
-	mkdir -p $(BUILD_DIR)/$(INFO_DIR)
+$(ELF): $(OBJS) | $(INFO_DIR)
+	printf "$(MSG_LINK)"
 	$(LD) -o $@ $^ $(LDFLAGS)
-	$(PRINT_CHECKMARK)
-	echo "Executable file \"$@\" successfully created."
 
 # Compiling object files from C sources
-$(BUILD_DIR)/%.o: %.c $(HEADERS) Makefile $(LDSCRIPT) $(BUILD_SRC_DIRS)
-	echo -n "Compiling $< --> $@... "
+$(BUILD_DIR)/%.o: %.c $(HEADERS) Makefile $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+	printf "$(MSG_COMPILE_C_FILE)"
 	$(CC) $(CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
-	$(PRINT_CHECKMARK)
 
 # Compiling object files from asm sources
-$(BUILD_DIR)/%.o: %.s $(HEADERS) Makefile $(LDSCRIPT) $(BUILD_SRC_DIRS)
-	echo -n "Assembling $< --> $@... "
+$(BUILD_DIR)/%.o: %.s $(HEADERS) Makefile $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+	printf "$(MSG_COMPILE_ASM_FILE)"
 	$(AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
-	$(PRINT_CHECKMARK)
 
 # Print object files' headers
-$(BUILD_DIR)/$(INFO_DIR)/%.header: $(BUILD_DIR)/%.o $(INFO_SRC_DIRS)
-	echo -n "Printing $< -> $@... "
+$(INFO_DIR)/%.header: $(BUILD_DIR)/%.o | $(INFO_SRC_DIRS)
+	printf "$(MSG_HEADER_FILE)"
 	$(OBJDUMP) -x $< > $@
-	$(PRINT_CHECKMARK)
 
 # Print elf file's header
-$(BUILD_DIR)/$(INFO_DIR)/%.header: $(BUILD_DIR)/%.elf $(INFO_SRC_DIRS)
-	echo -n "Printing $< -> $@... "
+$(INFO_DIR)/%.header: $(BUILD_DIR)/%.elf | $(INFO_SRC_DIRS)
+	printf "$(MSG_HEADER_FILE)"
 	$(OBJDUMP) -x $< > $@
-	$(PRINT_CHECKMARK)
 
 # Print object files' disassembly
-$(BUILD_DIR)/$(INFO_DIR)/%.d: $(BUILD_DIR)/%.o $(INFO_SRC_DIRS)
-	echo -n "Disassembling $< -> $@... "
+$(INFO_DIR)/%.d: $(BUILD_DIR)/%.o | $(INFO_SRC_DIRS)
+	printf "$(MSG_DASM_FILE)"
 	$(OBJDUMP) -d $< > $@
-	$(PRINT_CHECKMARK)
 
 # Print elf file disassembly
-$(BUILD_DIR)/$(INFO_DIR)/%.d: $(BUILD_DIR)/%.elf $(INFO_SRC_DIRS)
-	echo -n "Disassembling $< -> $@... "
+$(INFO_DIR)/%.d: $(BUILD_DIR)/%.elf | $(INFO_SRC_DIRS)
+	printf "$(MSG_DASM_FILE)"
 	$(OBJDUMP) -d $< > $@
-	$(PRINT_CHECKMARK)
 
 # Copy ELF file into BIN file
 $(BIN): $(ELF)
-	echo -n "Creating binary file $@... "
+	printf "$(MSG_BIN)"
 	$(OBJCOPY) -O binary $(ELF) $(BIN)
-	$(PRINT_CHECKMARK)
 
 # Folders
-$(BUILD_SRC_DIRS) $(INFO_SRC_DIRS) $(BUILD_DIR)/$(INFO_DIR):
+$(BUILD_SRC_DIRS) $(INFO_SRC_DIRS) $(INFO_DIR):
 	mkdir -p $@
