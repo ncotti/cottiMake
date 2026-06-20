@@ -10,6 +10,9 @@ SHELL=/bin/bash
 .SILENT:
 .DEFAULT_GOAL := help
 
+# Name of this file
+COTTIMAKE := cottimake.mk
+
 # Path to this Makefile, relative to the location from where it was called.
 # E.g. If your project looks like the following, then MAKE_ROOT would be
 # equal to "cottimake":
@@ -17,9 +20,16 @@ SHELL=/bin/bash
 # ├── Makefile ( Your own project Makefile, which contains the statement
 # │				 "include cottimake/Makefile")
 # └── cottimake
-#	  └── Makefile (this file)
-MAKE_ROOT ?= .
-MAKE_ROOT := $(patsubst %/,%, $(MAKE_ROOT))
+#	  └── cottimake.mk (this file)
+MAKE_ROOT := $(shell \
+    dir=$$(pwd); \
+    while [ "$${dir}" != "/" ]; do \
+        if [ -f "$${dir}/$(COTTIMAKE)" ]; then \
+            echo "$${dir}"; \
+            exit 0; \
+        fi; \
+        dir=$$(dirname "$$dir"); \
+    done)
 
 include $(MAKE_ROOT)/colors.mk
 include $(MAKE_ROOT)/constants.mk
