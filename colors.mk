@@ -1,5 +1,8 @@
-# This contains color definitions used with printf
+## This contains color definitions
 
+#------------------------------------------------------------------------------
+# Colors to be used inside "printf" statements
+#------------------------------------------------------------------------------
 BLACK   := \033[0;30m
 RED     := \033[0;31m
 GREEN   := \033[0;32m
@@ -30,9 +33,9 @@ BG_WHITE   := \033[47m
 # No Color / reset
 NC := \033[0m
 
-## The following colors are meant to be used with Make statements such as
-## $(error ...) or $(info ...)
-
+#------------------------------------------------------------------------------
+# Colors to be used with Makefile's messages $(error ...) or $(info ...)
+#------------------------------------------------------------------------------
 ESC := $(shell printf '\033')
 
 M_BLACK   := $(ESC)[0;30m

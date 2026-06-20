@@ -1,3 +1,7 @@
+## CottiMake is a general purpose Makefile for C and ASM projects
+## This is the main Makefile file, the one which should be included from
+## your project's Makefile.
+
 #------------------------------------------------------------------------------
 # Makefile Initialization
 #------------------------------------------------------------------------------
@@ -6,69 +10,37 @@ SHELL=/bin/bash
 .SILENT:
 .DEFAULT_GOAL := help
 
-GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
-
-# Repository's MAKE_ROOT directory. All relative paths will be taken from this path.
+# Path to this Makefile, relative to the location from where it was called.
+# E.g. If your project looks like the following, then MAKE_ROOT would be
+# equal to "cottimake":
+# .
+# ├── Makefile ( Your own project Makefile, which contains the statement
+# │				 "include cottimake/Makefile")
+# └── cottimake
+#	  └── Makefile (this file)
 MAKE_ROOT ?= .
-
 MAKE_ROOT := $(patsubst %/,%, $(MAKE_ROOT))
-
-#------------------------------------------------------------------------------
-# Includes
-#------------------------------------------------------------------------------
 
 include $(MAKE_ROOT)/colors.mk
 include $(MAKE_ROOT)/constants.mk
 include $(MAKE_ROOT)/messages.mk
 
 #------------------------------------------------------------------------------
-# Default variables
-# All these variables can be modified before including this Makefile
+# Used-defined variables: default values
 #------------------------------------------------------------------------------
 
-# White-space separated list of paths where source files are
-SRC_DIRS ?=
+# Default values for user variables
+include $(MAKE_ROOT)/defaults.mk
 
-
-# E.g.: arm-none-eabi-, arm-linux-gnueabihf-, (left empty), etc
-TOOLCHAIN ?=
-
-
-
-
-INC_DIRS ?=
-
-CFLAGS ?= -Wall -g -Wpedantic
-ASFLAGS ?= -g
-LDFLAGS ?= -g
-
-# Linker script (can be empty)
-LDSCRIPT ?=
-
-# Name of the final executable (without extension)
-EXE ?= exe
-
-# Name of the gdb script (can be empty)
-GDB_SCRIPT ?=
-
+# Check if all variables are ok
 include $(MAKE_ROOT)/arg_check.mk
 
-#------------------------------------------------------------------------------
-# Binutils
-#------------------------------------------------------------------------------
-ifeq ($(origin CC), default)
-CC := $(TOOLCHAIN)gcc
-else
-CC ?= $(TOOLCHAIN)gcc
-endif
-ifeq ($(origin AS), default)
-AS := $(TOOLCHAIN)as
-else
-AS ?= $(TOOLCHAIN)as
-endif
-LD 			:= $(TOOLCHAIN)gcc
-OBJDUMP 	:= $(TOOLCHAIN)objdump
-OBJCOPY 	:= $(TOOLCHAIN)objcopy
+## The following are the result of combining the chosen tools and toolchain
+T_CC		:= $(TOOLCHAIN)$(CC)
+T_AS		:= $(TOOLCHAIN)$(AS)
+T_LD		:= $(TOOLCHAIN)$(LD)
+T_OBJDUMP	:= $(TOOLCHAIN)$(OBJDUMP)
+T_OBJCOPY 	:= $(TOOLCHAIN)$(OBJCOPY)
 
 #------------------------------------------------------------------------------
 # File location
@@ -83,7 +55,7 @@ COMPILE_COMMANDS := $(BUILD_DIR)/compile_commands.json
 SCAN_BUILD_DIR := $(BUILD_DIR)/scan_build
 
 # If you use "ld" or "gcc" as linker, the memory map option is declared different
-ifneq (,$(findstring -ld, $(LD)))
+ifneq (,$(findstring -ld, $(T_LD)))
 LDFLAGS += -Map $(MAP)
 else
 LDFLAGS += -Wl,-Map=$(MAP)
@@ -105,14 +77,7 @@ OBJS := $(addprefix $(BUILD_DIR)/, $(OBJS))
 OBJS := $(patsubst %.c, %.o, $(OBJS))
 OBJS := $(patsubst %.s, %.o, $(OBJS))
 
-OBJ_HEADERS := $(patsubst %.o, %.header, $(OBJS) $(ELF))
-OBJ_HEADERS := $(patsubst %.elf, %.header, $(OBJ_HEADERS))
-OBJ_HEADERS := $(patsubst $(BUILD_DIR)%, $(INFO_DIR)%, $(OBJ_HEADERS))
-
-DASM_FILES := $(patsubst %.header, %.d, $(OBJ_HEADERS))
-
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
-INFO_SRC_DIRS := $(addprefix $(INFO_DIR)/, $(SRC_DIRS))
 
 SRCS := $(sort $(SRCS))
 OBJS := $(sort $(OBJS))
@@ -142,7 +107,7 @@ compile:
 	if $(MAKE) --no-print-directory -q $(ELF); then \
 		printf "$(MSG_COMPILE_DO_NOTHING)"; \
 	else \
-		$(MAKE) --no-print-directory $(ELF); \
+		$(MAKE) --no-print-directory $(ELF) && \
 		printf "$(MSG_COMPILE_OK)"; \
 	fi
 
@@ -164,30 +129,14 @@ bin:
 	if $(MAKE) --no-print-directory -q $(BIN); then \
 		printf "$(MSG_COMPILE_DO_NOTHING)"; \
 	else \
-		$(MAKE) --no-print-directory $(BIN); \
+		$(MAKE) --no-print-directory $(BIN) && \
 		printf "$(MSG_COMPILE_OK)"; \
-	fi
-
-.PHONY: headers ## Generate symbol table and section headers for all object files.
-headers: 
-	if $(MAKE) --no-print-directory -q $(OBJ_HEADERS); then \
-		printf "$(MSG_HEADERS_DO_NOTHING)"; \
-	else \
-		$(MAKE) --no-print-directory $(OBJ_HEADERS); \
-	fi
-
-.PHONY: dasm ## Generate disassemble for all object files and elf file.
-dasm:
-	if $(MAKE) --no-print-directory -q $(DASM_FILES); then \
-		printf "$(MSG_DASM_DO_NOTHING)"; \
-	else \
-		$(MAKE) --no-print-directory $(DASM_FILES); \
 	fi
 
 .PHONY: clean ## Erase contents of build directory.
 clean:
 	if [ -d "$(BUILD_DIR)" ]; then \
-		rm -Rf $(BUILD_DIR); \
+		rm -Rf $(BUILD_DIR) && \
 		printf "$(MSG_CLEAN_OK)"; \
 	else \
 		printf "$(MSG_CLEAN_EMPTY)"; \
@@ -213,7 +162,6 @@ test: compile
 
 include $(MAKE_ROOT)/print_targets.mk
 
-# TODO
 include $(MAKE_ROOT)/info_targets.mk
 
 #------------------------------------------------------------------------------
@@ -222,43 +170,23 @@ include $(MAKE_ROOT)/info_targets.mk
 # Main executable linking
 $(ELF): $(OBJS) | $(INFO_DIR)
 	printf "$(MSG_LINK)"
-	$(LD) -o $@ $^ $(LDFLAGS)
+	$(T_LD) -o $@ $^ $(LDFLAGS)
 
 # Compiling object files from C sources
 $(BUILD_DIR)/%.o: %.c $(HEADERS) Makefile $(LDSCRIPT) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_C_FILE)"
-	$(CC) $(CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
+	$(T_CC) $(CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources
 $(BUILD_DIR)/%.o: %.s $(HEADERS) Makefile $(LDSCRIPT) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
-	$(AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
-
-# Print object files' headers
-$(INFO_DIR)/%.header: $(BUILD_DIR)/%.o | $(INFO_SRC_DIRS)
-	printf "$(MSG_HEADER_FILE)"
-	$(OBJDUMP) -x $< > $@
-
-# Print elf file's header
-$(INFO_DIR)/%.header: $(BUILD_DIR)/%.elf | $(INFO_SRC_DIRS)
-	printf "$(MSG_HEADER_FILE)"
-	$(OBJDUMP) -x $< > $@
-
-# Print object files' disassembly
-$(INFO_DIR)/%.d: $(BUILD_DIR)/%.o | $(INFO_SRC_DIRS)
-	printf "$(MSG_DASM_FILE)"
-	$(OBJDUMP) -d $< > $@
-
-# Print elf file disassembly
-$(INFO_DIR)/%.d: $(BUILD_DIR)/%.elf | $(INFO_SRC_DIRS)
-	printf "$(MSG_DASM_FILE)"
-	$(OBJDUMP) -d $< > $@
+	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Copy ELF file into BIN file
 $(BIN): $(ELF)
 	printf "$(MSG_BIN)"
-	$(OBJCOPY) -O binary $(ELF) $(BIN)
+	$(T_OBJCOPY) -O binary $(ELF) $(BIN)
 
 # Folders
-$(BUILD_SRC_DIRS) $(INFO_SRC_DIRS) $(INFO_DIR):
+$(BUILD_SRC_DIRS) $(INFO_DIR):
 	mkdir -p $@

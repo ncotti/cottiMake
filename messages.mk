@@ -1,9 +1,7 @@
-# This file includes all messages to be printed on the screen
-
-include $(MAKE_ROOT)/colors.mk
+## This file contains all messages to be printed on the screen
 
 #------------------------------------------------------------------------------
-# Error messages
+# Error messages from Makefile
 #------------------------------------------------------------------------------
 define MSG_NO_SRC_DIRS
 $(M_RED)[ERROR #001]$(M_NC)
@@ -66,6 +64,17 @@ define MSG_COMPILE_OK
 $(GREEN)Compilation successful$(NC) $(CHECKMARK)\n
 endef
 
+define MSG_DASM_DO_NOTHING
+$(CYAN)Nothing to disassemble.$(NC)\n
+endef
+
+define MSG_HEADERS_DO_NOTHING
+$(CYAN)Nothing to generate.$(NC)\n
+endef
+
+#------------------------------------------------------------------------------
+# Compilation step messages
+#------------------------------------------------------------------------------
 define MSG_COMPILE_C_FILE
 $(MAGENTA)[CC]  $(NC) $<\n
 endef
@@ -82,18 +91,10 @@ define MSG_BIN
 $(MAGENTA)[BIN] $(NC) $@\n
 endef
 
-define MSG_DASM_DO_NOTHING
-$(CYAN)Nothing to disassemble.$(NC)\n
+define MSG_HEADER_FILE
+$(MAGENTA)[HEAD]$(NC) $@\n
 endef
 
 define MSG_DASM_FILE
 $(MAGENTA)[DASM]$(NC) $@\n
-endef
-
-define MSG_HEADERS_DO_NOTHING
-$(CYAN)Nothing to generate.$(NC)\n
-endef
-
-define MSG_HEADER_FILE
-$(MAGENTA)[HEAD]$(NC) $@\n
 endef

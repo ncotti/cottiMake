@@ -1,6 +1,11 @@
-include $(MAKE_ROOT)/messages.mk
+## This file ensures that all user-defined variables are correct before
+## proceeding with any compilation step
 
+GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
 
+#------------------------------------------------------------------------------
+# SRC_DIRS and INC_DIRS checking
+#------------------------------------------------------------------------------
 # Only execute these checks for compilation targets
 ifeq ($(filter help clean,$(GOALS)),)
 
@@ -9,24 +14,22 @@ ifndef SRC_DIRS
 $(error $(MSG_NO_SRC_DIRS))
 endif
 
-
-# There should not be duplicates
+# There should not be duplicates in SRC_DIRS
 DUPLICATES := $(shell printf "%s\n" $(strip $(SRC_DIRS)) | tr ' ' '\n' | sort | uniq -d)
 ifneq ($(strip $(DUPLICATES)),)
 $(error $(MSG_REPEATED_SRC_DIRS) $(DUPLICATES))
 endif
 
-# There should not be duplicates
+# There should not be duplicates in INC_DIRS
 DUPLICATES := $(shell printf "%s\n" $(strip $(INC_DIRS)) | tr ' ' '\n' | sort | uniq -d)
 ifneq ($(strip $(DUPLICATES)),)
 $(error $(MSG_REPEATED_INC_DIRS) $(DUPLICATES))
 endif
 
-
-# By sorting, we remove duplicates
+# By sorting, duplicates are removed (although we have checked for duplicates
+# before)
 SRC_DIRS := $(sort $(SRC_DIRS))
 INC_DIRS := $(sort $(INC_DIRS))
-
 
 # All source directories must exist and be directories
 NOT_DIRS := $(foreach dir, $(SRC_DIRS), $(shell [ ! -d $(dir) ] && echo "$(dir)"))
@@ -54,4 +57,4 @@ ifneq ($(strip $(EMPTY_DIRS)),)
 $(error $(MSG_EMPTY_INC_DIR) $(EMPTY_DIRS))
 endif
 
-endif # Not compilation targets
+endif # SRC_DIRS and INC_DIRS
