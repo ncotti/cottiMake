@@ -48,24 +48,24 @@ teardown_file() {
 }
 
 @test "Compiling with empty SRC_DIRS should fail" {
-    run make -C "${MAKE_DIR}" compile
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile
     assert_failure
     assert_output --partial "[ERROR #001]"
 
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS=" "
     assert_failure
     assert_output --partial "[ERROR #001]"
 }
 
 @test "Compiling with not existent SRC_DIRS should fail" {
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1} ${not_dir1}"
     assert_failure
     assert_output --partial "[ERROR #002]"
     assert_output --partial "${not_dir1}"
 
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${not_dir1} ${not_dir2}"
     assert_failure
     assert_output --partial "[ERROR #002]"
@@ -73,7 +73,7 @@ teardown_file() {
     assert_output --partial "${not_dir2}"
 
      # Try different combinations of arguments
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${not_dir1} ${src_dir1} ${not_dir2} ${src_dir2}"
     assert_failure
     assert_output --partial "[ERROR #002]"
@@ -82,7 +82,7 @@ teardown_file() {
 }
 
 @test "Setting a file in SRC_DIRS should not be allowed" {
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1} ${src_dir2} ${src_file1} ${src_file2}"
     assert_failure
     assert_output --partial "[ERROR #002]"
@@ -91,7 +91,7 @@ teardown_file() {
 }
 
 @test "Compiling with not existent INC_DIRS should fail" {
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${inc_dir1} ${inc_dir2} ${not_dir1} ${not_dir2}"
     assert_failure
@@ -101,7 +101,7 @@ teardown_file() {
 }
 
 @test "If a source dir does not have any source file, fail" {
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${empty_dir}"
     assert_failure
     assert_output --partial "[ERROR #004]"
@@ -109,7 +109,7 @@ teardown_file() {
 }
 
 @test "If a header dir does not have any header file, fail" {
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${empty_dir}"
     assert_failure
@@ -118,14 +118,14 @@ teardown_file() {
 }
 
 @test "Repeated source directories should fail" {
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1} ${src_dir1}"
     assert_output --partial "[ERROR #006]"
     assert_output --partial "${src_dir1}"
 }
 
 @test "Repeated include directories should fail" {
-    run make -C "${MAKE_DIR}" compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${inc_dir1} ${inc_dir1} ${inc_dir2}"
     assert_output --partial "[ERROR #007]"

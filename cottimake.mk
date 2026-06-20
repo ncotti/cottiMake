@@ -118,7 +118,7 @@ tidy: $(SRCS)
 
 .PHONY: help ## Display this message.
 help:
-	grep -E '^\.PHONY:.*## .*$$' $(MAKE_ROOT)/Makefile $(MAKE_ROOT)/*.mk \
+	grep -E '^\.PHONY:.*## .*$$' $(MAKE_ROOT)/*.mk \
 	| sort \
 	| awk 'BEGIN {FS=":|## "}; \
 	       {gsub(/^[ \t]+|[ \t]+$$/, "", $$3); \
@@ -173,12 +173,12 @@ $(ELF): $(OBJS) | $(INFO_DIR)
 	$(T_LD) -o $@ $^ $(LDFLAGS)
 
 # Compiling object files from C sources
-$(BUILD_DIR)/%.o: %.c $(HEADERS) Makefile $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%.o: %.c $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_C_FILE)"
 	$(T_CC) $(CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources
-$(BUILD_DIR)/%.o: %.s $(HEADERS) Makefile $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%.o: %.s $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
 	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 

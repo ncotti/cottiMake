@@ -6,4 +6,4 @@ SRC_DIRS := src src/nested_src
 INC_DIRS := inc inc/nested_inc
 EXE := c_project_exe
 
-include $(MAKE_ROOT)/Makefile
+include $(MAKE_ROOT)/cottimake.mk

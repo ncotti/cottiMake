@@ -56,17 +56,17 @@ teardown_file() {
 
 # When no external "SRC_DIRS" is declared, an error message should be shown
 @test "No SRC_DIRS declared and print_src or print_obj is called" {
-    run make -C "${MAKE_DIR}" print_src
+    run make -C "${MAKE_DIR}" -f cottimake.mk print_src
     assert_failure
     assert_output --partial "[ERROR #001]"
 
-    run make -C "${MAKE_DIR}" print_obj
+    run make -C "${MAKE_DIR}" -f cottimake.mk print_obj
     assert_failure
     assert_output --partial "[ERROR #001]"
 }
 
 @test "Print source files" {
-    run make -C "${MAKE_DIR}" print_src \
+    run make -C "${MAKE_DIR}" -f cottimake.mk print_src \
         SRC_DIRS="${src_dir1} ${src_dir2}"
     assert_success
     assert_output --partial "Source files:"
@@ -80,7 +80,7 @@ EOF
 }
 
 @test "Print object files" {
-    run make -C "${MAKE_DIR}" print_obj \
+    run make -C "${MAKE_DIR}" -f cottimake.mk print_obj \
         SRC_DIRS="${src_dir1} ${src_dir2}"
     assert_success
     assert_output --partial "Object files:"
@@ -94,7 +94,7 @@ EOF
 }
 
 @test "Absolute paths should not contain double //" {
-    run make -C "${MAKE_DIR}" print_obj \
+    run make -C "${MAKE_DIR}" -f cottimake.mk print_obj \
         SRC_DIRS="${src_dir1}"
 
     assert_success
@@ -102,14 +102,14 @@ EOF
 }
 
 @test "No INC_DIRS declared and print_header is called" {
-    run make -C "${MAKE_DIR}" print_header \
+    run make -C "${MAKE_DIR}" -f cottimake.mk print_header \
         SRC_DIRS="${src_dir1}"
     assert_success
     assert_output --partial "Header files:"
 }
 
 @test "Print headers" {
-    run make -C "${MAKE_DIR}" print_header \
+    run make -C "${MAKE_DIR}" -f cottimake.mk print_header \
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${inc_dir1}"
     assert_success
@@ -122,7 +122,7 @@ EOF
 }
 
 @test "Print sources, objects and headers" {
-    run make -C "${MAKE_DIR}" print \
+    run make -C "${MAKE_DIR}" -f cottimake.mk print \
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${inc_dir1} ${inc_dir2}"
 
