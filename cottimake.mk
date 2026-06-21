@@ -50,7 +50,7 @@ T_OBJCOPY 	:= $(CROSS_COMPILE)$(OBJCOPY)
 T_GDB		:= $(CROSS_COMPILE)$(GDB)
 
 # Implicit GDB flags
-GDB_FLAGS += -q -x "$(GDB_SCRIPT)"
+GDBFLAGS += -q -x "$(GDB_SCRIPT)"
 
 # Check if all variables are ok
 include $(MAKE_ROOT)/arg_check.mk
@@ -134,6 +134,7 @@ run: compile
 
 .PHONY: debug ## Debug executable file
 debug: compile
+	printf "$(MSG_DEBUG)"
 	$(T_GDB) $(GDBFLAGS) "$(ELF)"
 
 .PHONY: test ## Compile and execute tests

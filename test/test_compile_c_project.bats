@@ -118,10 +118,12 @@ teardown_file() {
 }
 
 @test "Debug executable" {
-    # run make -C "${PROJECT_DIR}" debug
-    # assert_success
-    # assert_output --partial "Debugging build/c_project.elf"
-    # assert_output --partial "C_project_out: 3"
-    false
-    # Some output from gdb script?
+    run make -C "${PROJECT_DIR}" debug \
+        GDB_SCRIPT="${PROJECT_DIR}/gdb_script.gdb"
+
+    assert_success
+    assert_output --partial "Debugging: ${ELF_FILE}"
+
+    run cat "${PROJECT_DIR}/debug_log.txt"
+    assert_output --partial "Value retrieved from gdb: 3"
 }

@@ -66,6 +66,10 @@ define MSG_RUN
 $(BOLD_MAGENTA)Executing: $(ELF) $(EXEFLAGS)$(NC)\n
 endef
 
+define MSG_DEBUG
+$(BOLD_MAGENTA)Debugging: $(ELF)$(NC)\n
+endef
+
 #------------------------------------------------------------------------------
 # Compilation step messages
 #------------------------------------------------------------------------------
