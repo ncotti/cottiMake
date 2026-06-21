@@ -88,7 +88,6 @@ teardown_file() {
     true
 }
 
-# When no external "SRC_DIRS" is declared, an error message should be shown
 @test "Modifying a source file should trigger a re-compilation" {
     run make -C "${MAKE_DIR}" --no-print-directory compile
     assert_success
@@ -123,31 +122,36 @@ teardown_file() {
 }
 
 @test "Modifying a header file should trigger a re-compilation" {
-    run make -C "${MAKE_DIR}" --no-print-directory compile
+    run make -C "${MAKE_DIR}" --no-print-directory compile \
+        CFLAGS=""
     assert_success
     assert_output --partial "${src_file1}"
     assert_output --partial "${src_file2}"
     assert_output --partial "${exe_file}"
 
-    run make -C "${MAKE_DIR}" --no-print-directory compile
+    run make -C "${MAKE_DIR}" --no-print-directory compile \
+        CFLAGS=""
     assert_success
     refute_output
 
     # Modifying main.h should only trigger a re-compilation of main.c
     printf "\n //Extra comment at the end \n" >> "${inc_file1}"
-    run make -C "${MAKE_DIR}" --no-print-directory compile
+    run make -C "${MAKE_DIR}" --no-print-directory compile \
+        CFLAGS=""
     assert_success
     assert_output --partial "${src_file1}"
     assert_output --partial "${exe_file}"
     refute_output --partial "${src_file2}"
 
-    run make -C "${MAKE_DIR}" --no-print-directory compile
+    run make -C "${MAKE_DIR}" --no-print-directory compile \
+        CFLAGS=""
     assert_success
     refute_output
 
     # Modifying help.h should trigger recompilation of both files
     printf "\n //Extra comment at the end \n" >> "${inc_file2}"
-    run make -C "${MAKE_DIR}" --no-print-directory compile
+    run make -C "${MAKE_DIR}" --no-print-directory compile \
+        CFLAGS=""
     assert_success
     assert_output --partial "${src_file1}"
     assert_output --partial "${src_file2}"

@@ -119,18 +119,24 @@ teardown_file() {
     assert_output --partial "C_project_out: 3"
 }
 
-@test "Debug executable" {
-    false
-    run make -C "${PROJECT_DIR}" debug \
-        GDB_SCRIPT="${PROJECT_DIR}/gdb_script.gdb"
-
-    assert_success
-    assert_output --partial "Debugging: ${ELF_FILE}"
-
-    run cat "${PROJECT_DIR}/debug_log.txt"
-    assert_output --partial "Value retrieved from gdb: 3"
+@test "Debugging without compiling with -g flag should fail" {
+    run make -C ${PROJECT_DIR} debug \
+        CFLAGS=""
+    assert_failure
+    assert_output --partial "[ERROR #011]"
 }
 
-@test "Debugging without compiling with -g flag should fail" {
-    false
+@test "Debug executable" {
+    # On purpose, a double "-q" is expected as gdb flags
+    run make -C "${PROJECT_DIR}" debug \
+        GDB="gdb" \
+        GDBFLAGS="-q" \
+        CFLAGS="-g" \
+        GDBSCRIPT="${PROJECT_DIR}/gdb_script.gdb"
+    assert_success
+    assert_output --partial "Debugging:"
+    assert_output --partial "gdb -q -q -x ${PROJECT_DIR}/gdb_script.gdb ${ELF_FILE}"
+
+    run cat "${BUILD_DIR}/debug_log.txt"
+    assert_output --partial "Value retrieved from gdb: 3"
 }

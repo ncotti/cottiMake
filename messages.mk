@@ -64,6 +64,10 @@ TERMINAL, program for launching new terminal windows, does not exist.
 Specified terminal emulator was:
 endef
 
+define MSG_DEBUG_NO_G_FLAG
+$(RED)[ERROR #011]$(NC)\nTrying to debug executable file, but missing \"-g\" flag in CFLAGS.\n
+endef
+
 #------------------------------------------------------------------------------
 # Info messages
 #------------------------------------------------------------------------------

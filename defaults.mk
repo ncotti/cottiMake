@@ -59,7 +59,7 @@ TERMINAL ?= gnome-terminal
 # C compiler flags
 CFLAGS ?= -Wall -g -Wpedantic
 
-# Assembler flags)
+# Assembler flags
 ASFLAGS ?= $(CFLAGS)
 
 # Linker flags
@@ -71,11 +71,11 @@ LDSCRIPT ?=
 # GDB flags.
 # The following flags are always added to the GDB command by default:
 # -q
-# -x $(GDB_SCRIPT)
+# -x $(GDBSCRIPT)
 GDBFLAGS ?=
 
 # Name of the gdb script (if any)
-GDB_SCRIPT ?=
+GDBSCRIPT ?=
 
 # Simulator flags
 SIMFLAGS ?=

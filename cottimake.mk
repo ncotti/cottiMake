@@ -41,14 +41,13 @@ T_OBJDUMP	:= $(CROSS_COMPILE)$(OBJDUMP)
 T_OBJCOPY 	:= $(CROSS_COMPILE)$(OBJCOPY)
 T_GDB		:= $(CROSS_COMPILE)$(GDB)
 
-# Implicit GDB flags
-GDBFLAGS += -q
-ifneq (,$(GDB_SCRIPT))
-GDBFLAGS += -x $(GDB_SCRIPT)
+EXTRA_GDBFLAGS := -q
+ifneq (,$(GDBSCRIPT))
+EXTRA_GDBFLAGS += -x $(GDBSCRIPT)
 endif
 
 # Add dependency generation flags for compiler
-CFLAGS += -MMD -MP
+DEPFLAGS := -MMD -MP
 
 # Check if all variables are ok
 include $(MAKE_ROOT)/arg_check.mk
@@ -89,9 +88,9 @@ SIM_TIMEOUT_TO_EXIT := 10
 
 # Add flag in simulator to create a pid file to later close it
 ifneq ($(findstring qemu,$(SIM)),)
-SIMFLAGS += -pidfile $(SIM_PID_FILE)
+PIDFILE_SIMFLAG += -pidfile $(SIM_PID_FILE)
 else ifneq ($(findstring renode,$(SIM)),)
-SIMFLAGS += --pid-file $(SIM_PID_FILE)
+PIDFILE_SIMFLAG += --pid-file $(SIM_PID_FILE)
 endif
 
 MISC_DEPS := $(LDSCRIPT) Makefile
@@ -151,9 +150,9 @@ run: $(ELF)
 .PHONY: sim ## Execute program in simulation environment
 sim: $(ELF) sim_kill
 	printf "$(MSG_SIM)"
-	printf "$(MAGENTA)$(SIM) $(SIMFLAGS)$(NC)\n"
+	printf "$(MAGENTA)$(SIM) $(SIMFLAGS) $(PIDFILE_SIMFLAG)$(NC)\n"
 	gnome-terminal -- bash -c "\
-		$(SIM) $(SIMFLAGS) |& tee $(SIM_OUTPUT_FILE); \
+		$(SIM) $(SIMFLAGS) $(PIDFILE_SIMFLAG) |& tee $(SIM_OUTPUT_FILE); \
 		printf '$(MSG_SIM_CLOSING)'; \
 		read -s -t $(SIM_TIMEOUT_TO_EXIT)"; \
 
@@ -167,9 +166,13 @@ sim_kill:
 
 .PHONY: debug ## Debug executable file
 debug: $(ELF)
+	if [ -z $(filter -g,$(CFLAGS)) ]; then \
+		printf "$(MSG_DEBUG_NO_G_FLAG)"; \
+		exit 11; \
+	fi
 	printf "$(MSG_DEBUG)"
-	printf "$(MAGENTA)$(T_GDB) $(GDBFLAGS) $(ELF)$(NC)\n"
-	$(T_GDB) $(GDBFLAGS) $(ELF)
+	printf "$(MAGENTA)$(T_GDB) $(GDBFLAGS) $(EXTRA_GDBFLAGS) $(ELF)$(NC)\n"
+	$(T_GDB) $(GDBFLAGS) $(EXTRA_GDBFLAGS) $(ELF)
 
 .PHONY: test ## Compile and execute tests
 test: $(ELF)
@@ -197,7 +200,7 @@ $(ELF): $(OBJS)
 # Compiling object files from C sources
 $(BUILD_DIR)/%.o: %.c $(MISC_DEPS) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_C_FILE)"
-	$(T_CC) $(CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
+	$(T_CC) $(CFLAGS) $(DEPFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources ending with ".s"
 $(BUILD_DIR)/%_asm.o: %.s $(MISC_DEPS) | $(BUILD_SRC_DIRS)

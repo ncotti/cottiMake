@@ -13,7 +13,7 @@ LDFLAGS := -g -nostartfiles -Wl,--gc-sections
 
 LDSCRIPT := linker_script.ld
 
-GDB_SCRIPT := debug.gdb
+GDBSCRIPT := debug.gdb
 
 BUILD_DIR := build
 EXE := exe
