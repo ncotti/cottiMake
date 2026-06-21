@@ -1,1 +1,0 @@
-#define FOUR 4

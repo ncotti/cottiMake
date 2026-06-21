@@ -1,5 +1,5 @@
-SRC_DIRS := src src/sub_src
-INC_DIRS := inc inc/sub_inc
+SRC_DIRS := src startup
+INC_DIRS := inc
 
 CROSS_COMPILE ?= arm-none-eabi-
 
@@ -7,7 +7,7 @@ CC := gcc
 AS := gcc
 LD := gcc
 
-CFLAGS := -mthumb -mcpu=cortex-a8 -mfloat-abi=softfp -g
+CFLAGS := -Wall -g -marm -mcpu=cortex-a8 -mfloat-abi=softfp
 ASFLAGS := $(CFLAGS)
 LDFLAGS := -g -nostartfiles -Wl,--gc-sections
 
