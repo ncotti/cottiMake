@@ -38,6 +38,9 @@ endif
 # Otherwise, the binary defined here will be used instead.
 GDB ?= gdb
 
+# Simulator used when running "make sim" command
+SIM ?=
+
 # Objdump binutil, used to create disassembly files and section headers
 OBJDUMP	?= objdump
 
@@ -67,6 +70,10 @@ GDBFLAGS ?=
 
 # Name of the gdb script (if any)
 GDB_SCRIPT ?=
+
+# Simulator flags
+SIMFLAGS ?=
+
 
 #------------------------------------------------------------------------------
 # Run-time variables

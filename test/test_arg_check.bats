@@ -223,3 +223,13 @@ teardown_file() {
     assert_success
     assert_file_exist "${MAKE_DIR}/build/exe.elf"
 }
+
+@test "If a simulator is specified, it should be installed" {
+    run make -C "${MAKE}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        SIM="xd"
+    assert_failure
+    assert_output --partial "[ERROR #009]"
+    assert_output --partial "xd"
+}

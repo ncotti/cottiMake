@@ -89,4 +89,10 @@ $(error $(MSG_INVALID_TOOLCHAIN) $(T_GDB))
 endif
 endif
 
+ifdef SIM
+ifeq ($(shell command -v $(SIM) 2>/dev/null),)
+$(error $(MSG_INVALID_SIM) $(SIM))
+endif
+endif
+
 endif # SRC_DIRS and INC_DIRS

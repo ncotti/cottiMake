@@ -51,6 +51,12 @@ CROSS_COMPILE toolchain does not exist.
 Specified toolchain was:
 endef
 
+define MSG_INVALID_SIM
+$(M_RED)[ERROR #009]$(M_NC)
+SIM simulator does not exist.
+Specified simulator was:
+endef
+
 #------------------------------------------------------------------------------
 # Info messages
 #------------------------------------------------------------------------------
