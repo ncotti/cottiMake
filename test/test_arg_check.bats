@@ -171,9 +171,55 @@ teardown_file() {
 }
 
 @test "Simple compilation should succeed" {
+    # Using default build dir
     run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1}" \
-        INC_DIRS="${inc_dir1}"
+        INC_DIRS="${inc_dir1}" \
+    assert_success
+    assert_file_exist "${MAKE_DIR}/build/exe.elf"
+
+   run make -C "${MAKE_DIR}" -f cottimake.mk clean
+
+    # Changing build dir location
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        BUILD_DIR="custom_build_dir"
+
+    assert_success
+    assert_file_exist "${MAKE_DIR}/custom_build_dir/exe.elf"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk clean \
+        BUILD_DIR="custom_build_dir"
+        
+    assert_success
+    assert_dir_not_exist "${MAKE_DIR}/custom_build_dir"
+}
+
+@test "Changing name of exe file" {
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+    assert_success
+    assert_file_exist "${MAKE_DIR}/build/exe.elf"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        EXE="custom_exe"
+    assert_success
+    assert_file_exist "${MAKE_DIR}/build/exe.elf"
+    assert_file_exist "${MAKE_DIR}/build/custom_exe.elf"
+}
+
+@test "Using clang for compilation" {
+    command -v clang
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        CC="clang"
+
     assert_success
     assert_file_exist "${MAKE_DIR}/build/exe.elf"
 }

@@ -50,7 +50,7 @@ OBJCOPY ?= objcopy
 # C compiler flags
 CFLAGS ?= -Wall -g -Wpedantic
 
-# Assembler flags
+# Assembler flags)
 ASFLAGS ?= $(CFLAGS)
 
 # Linker flags
@@ -73,3 +73,6 @@ GDB_SCRIPT ?=
 #------------------------------------------------------------------------------
 # Name of the executable ".elf" file (without extension)
 EXE ?= exe
+
+# Name of the folder where all build artifacts will be generated
+BUILD_DIR ?= build
