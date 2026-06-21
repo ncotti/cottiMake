@@ -39,6 +39,7 @@ endif
 GDB ?= gdb
 
 # Simulator used when running "make sim" command
+# Only valid ones are: qemu[*] | renode
 SIM ?=
 
 # Objdump binutil, used to create disassembly files and section headers
@@ -46,6 +47,11 @@ OBJDUMP	?= objdump
 
 # Objcopy binutil, used to create stripped .bin and .hex files from .elf files
 OBJCOPY ?= objcopy
+
+# Program used to spawn new terminal windows
+# Some targets of this Makefile require launching a new program and, for that
+# purpose, create a new terminal for the user to see it running.
+TERMINAL ?= gnome-terminal
 
 #------------------------------------------------------------------------------
 # Compiler, assembler and linker flags
@@ -73,7 +79,6 @@ GDB_SCRIPT ?=
 
 # Simulator flags
 SIMFLAGS ?=
-
 
 #------------------------------------------------------------------------------
 # Run-time variables

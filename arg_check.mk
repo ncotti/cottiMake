@@ -94,9 +94,23 @@ endif
 endif
 
 ifdef SIM
+
+# First, check that the simulator is installed
 ifeq ($(shell command -v $(SIM) 2>/dev/null),)
 $(error $(MSG_INVALID_SIM) $(SIM))
 endif
+
+# Then, check if it is either qemu or renode, won't support any other simulator
+ifeq ($(findstring qemu,$(SIM)),)
+ifeq ($(findstring renode,$(SIM)),)
+$(error $(MSG_INVALID_SIM) $(SIM))
+endif
+endif
+
+endif # SIM
+
+ifeq ($(shell command -v $(TERMINAL) 2>/dev/null),)
+$(error $(MSG_INVALID_TERMINAL) $(TERMINAL))
 endif
 
 endif # SRC_DIRS and INC_DIRS

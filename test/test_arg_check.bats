@@ -224,12 +224,32 @@ teardown_file() {
     assert_file_exist "${MAKE_DIR}/build/exe.elf"
 }
 
-@test "If a simulator is specified, it should be installed" {
+@test "If a simulator is specified, it should be installed and be either qemu or rendode" {
     run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${inc_dir1}" \
         SIM="xd"
     assert_failure
     assert_output --partial "[ERROR #009]"
+    assert_output --partial "xd"
+
+    # gcc is not a valid simulator, but a valid program.
+    # It should fail regardless
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        SIM="gcc"
+    assert_failure
+    assert_output --partial "[ERROR #009]"
+    assert_output --partial "gcc"
+}
+
+@test "Terminal launcher program should exist" {
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        TERMINAL="xd"
+    assert_failure
+    assert_output --partial "[ERROR #010]"
     assert_output --partial "xd"
 }

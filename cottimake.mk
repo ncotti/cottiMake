@@ -84,7 +84,15 @@ OBJS := $(sort $(OBJS))
 
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
 
+# Process ID of the last simulator instance that was run
+SIM_PID_FILE := $(BUILD_DIR)/sim_pid_file.pid
 
+# Add flag in simulator to create a pid file to later close it
+ifneq ($(findstring qemu,$(SIM)),)
+SIMFLAGS += -pidfile $(SIM_PID_FILE)
+else ifneq ($(findstring renode,$(SIM)),)
+SIMFLAGS += --pid-file $(SIM_PID_FILE)
+endif
 
 #------------------------------------------------------------------------------
 # User targets
@@ -133,17 +141,30 @@ clean:
 	fi
 
 .PHONY: run ## Execute program
-run: compile
+run: $(ELF)
 	printf "$(MSG_RUN)"
 	$(ELF) $(EXEFLAGS)
 
+.PHONY: sim ## Execute program in simulation environment
+sim: $(ELF) sim_kill
+	printf "$(MSG_SIM)"
+	gnome-terminal -- bash -c "$(SIM) $(SIMFLAGS)"
+
+.PHONY: sim_kill ## Kills a running simulator instance
+sim_kill:
+	if [ -f "$(SIM_PID_FILE)" ]; then \
+		echo -n "Killing Renode... "; \
+		kill "$$(cat $(SIM_PID_FILE))" &>/dev/null; \
+		rm $(SIM_PID_FILE); \
+	fi
+
 .PHONY: debug ## Debug executable file
-debug: compile
+debug: $(ELF)
 	printf "$(MSG_DEBUG)"
 	$(T_GDB) $(GDBFLAGS) "$(ELF)"
 
 .PHONY: test ## Compile and execute tests
-test: compile
+test: $(ELF)
 	$(MAKE) -f test.mk \
 		BUILD_DIR="$(BUILD_DIR)" \
 		CFLAGS="$(CFLAGS)" \

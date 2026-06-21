@@ -53,8 +53,15 @@ endef
 
 define MSG_INVALID_SIM
 $(M_RED)[ERROR #009]$(M_NC)
-SIM simulator does not exist.
+SIM simulator does not exist, or is an invalid one.
+Supported simulators are qemu[*] or renode.
 Specified simulator was:
+endef
+
+define MSG_INVALID_TERMINAL
+$(M_RED)[ERROR #010]$(M_NC)
+TERMINAL, program for launching new terminal windows, does not exist.
+Specified terminal emulator was:
 endef
 
 #------------------------------------------------------------------------------
