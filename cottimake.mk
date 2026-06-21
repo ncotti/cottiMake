@@ -69,17 +69,22 @@ ifneq (,$(LDSCRIPT))
 LDFLAGS += -T $(LDSCRIPT)
 endif
 
-SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c) $(wildcard $(dir)/*.s))
+SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c) $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
+SRCS := $(sort $(SRCS))
 
-HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/*.s))
+HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
+HEADERS := $(sort $(HEADERS))
 HEADER_FLAGS := $(addprefix -I , $(INC_DIRS))
 
-# TODO add _asm to assembly object files
 OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS))
 OBJS := $(patsubst %.c, %.o, $(OBJS))
-OBJS := $(patsubst %.s, %.o, $(OBJS))
+OBJS := $(patsubst %.s, %_asm.o, $(OBJS))
+OBJS := $(patsubst %.S, %_asm.o, $(OBJS))
+OBJS := $(sort $(OBJS))
 
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
+
+
 
 #------------------------------------------------------------------------------
 # User targets
@@ -165,8 +170,13 @@ $(BUILD_DIR)/%.o: %.c $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_C_FILE)"
 	$(T_CC) $(CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
-# Compiling object files from asm sources
+# Compiling object files from asm sources ending with ".s"
 $(BUILD_DIR)/%.o: %.s $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+	printf "$(MSG_COMPILE_ASM_FILE)"
+	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
+
+# Compiling object files from asm sources ending with ".S"
+$(BUILD_DIR)/%.o: %.S $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
 	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 

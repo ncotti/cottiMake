@@ -39,7 +39,9 @@ endif
 
 # Source directories must not be empty
 EMPTY_DIRS := $(foreach dir,$(SRC_DIRS), \
-  $(shell find "$(dir)" -maxdepth 1 \( -name "*.c" -o -name "*.s" \) -print -quit | grep -q . || echo "$(dir)"))
+  $(shell find "$(dir)" -maxdepth 1 \
+    \( -name "*.c" -o -name "*.s" -o -name "*.S" \) \
+    -print -quit | grep -q . || echo "$(dir)"))
 ifneq ($(strip $(EMPTY_DIRS)),)
 $(error $(MSG_EMPTY_SRC_DIR) $(EMPTY_DIRS))
 endif
@@ -52,7 +54,9 @@ endif
 
 # Include directories must not be empty
 EMPTY_DIRS := $(foreach dir,$(INC_DIRS), \
-  $(shell find "$(dir)" -maxdepth 1 \( -name "*.h" \) -print -quit | grep -q . || echo "$(dir)"))
+  $(shell find "$(dir)" -maxdepth 1 \
+    \( -name "*.h" -o -name "*.s" -o -name "*.S" \) \
+      -print -quit | grep -q . || echo "$(dir)"))
 ifneq ($(strip $(EMPTY_DIRS)),)
 $(error $(MSG_EMPTY_INC_DIR) $(EMPTY_DIRS))
 endif

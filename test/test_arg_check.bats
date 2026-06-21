@@ -191,7 +191,7 @@ teardown_file() {
 
     run make -C "${MAKE_DIR}" -f cottimake.mk clean \
         BUILD_DIR="custom_build_dir"
-        
+
     assert_success
     assert_dir_not_exist "${MAKE_DIR}/custom_build_dir"
 }
@@ -225,7 +225,7 @@ teardown_file() {
 }
 
 @test "If a simulator is specified, it should be installed" {
-    run make -C "${MAKE}" -f cottimake.mk compile \
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${inc_dir1}" \
         SIM="xd"

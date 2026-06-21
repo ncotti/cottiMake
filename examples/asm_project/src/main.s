@@ -2,6 +2,7 @@
 .extern _stack_addr
 .extern add9
 .include "asm_header.s"
+.include "help.S"
 
 .text
 _start:
@@ -12,7 +13,7 @@ _start:
     mov r3, #4
     mov r4, #5
     ldr r5, =sixth_arg
-    mov r6, #7
+    mov r6, =seventh_arg
     mov r7, #8
     mov r8, #9
     push {r4-r8}
