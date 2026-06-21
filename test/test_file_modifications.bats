@@ -14,8 +14,6 @@ setup() {
 
     # For this test, we will copy all the cottimake's Makefiles into the
     # test's tmp folder.
-    # Since the test tmp folder is located at /tmp, it will try to recurse
-    # directories to find cottimake, but it will stop at "/" and fail.
     export COTTI_MAKE_DIR="$BATS_TEST_TMPDIR/cottimake"
 
     mkdir -p "${COTTI_MAKE_DIR}"

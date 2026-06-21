@@ -1,3 +1,6 @@
+HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
+HEADERS := $(sort $(HEADERS))
+
 .PHONY: print_src ## Print source files
 print_src:
 	printf "$(BOLD_MAGENTA)Source files:$(NC)\n"

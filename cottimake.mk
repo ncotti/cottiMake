@@ -94,6 +94,8 @@ else ifneq ($(findstring renode,$(SIM)),)
 SIMFLAGS += --pid-file $(SIM_PID_FILE)
 endif
 
+MISC_DEPS := $(LDSCRIPT) Makefile
+
 #------------------------------------------------------------------------------
 # User targets
 #------------------------------------------------------------------------------
@@ -193,17 +195,17 @@ $(ELF): $(OBJS)
 	printf "$(MSG_COMPILE_OK)"
 
 # Compiling object files from C sources
-$(BUILD_DIR)/%.o: %.c $(LDSCRIPT) Makefile | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%.o: %.c $(MISC_DEPS) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_C_FILE)"
 	$(T_CC) $(CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources ending with ".s"
-$(BUILD_DIR)/%_asm.o: %.s $(LDSCRIPT) Makefile | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%_asm.o: %.s $(MISC_DEPS) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
 	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources ending with ".S"
-$(BUILD_DIR)/%_asm.o: %.S $(LDSCRIPT) Makefile | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%_asm.o: %.S $(MISC_DEPS) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
 	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
@@ -215,5 +217,8 @@ $(BIN): $(ELF)
 # Folders
 $(BUILD_SRC_DIRS):
 	mkdir -p $@
+
+# Empty rule for miscellaneous dependencies
+$(MISC_DEPS):
 
 -include $(DEPS)
