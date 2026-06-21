@@ -14,22 +14,14 @@ SHELL=/bin/bash
 COTTIMAKE := cottimake.mk
 
 # Path to this Makefile, relative to the location from where it was called.
-# E.g. If your project looks like the following, then MAKE_ROOT would be
-# equal to "cottimake":
+# E.g. If your project looks like the following, and you execute "make" from 
+# the "." directory, then MAKE_ROOT will be equal to "cottimake":
 # .
 # ├── Makefile ( Your own project Makefile, which contains the statement
 # │				 "include cottimake/Makefile")
 # └── cottimake
 #	  └── cottimake.mk (this file)
-MAKE_ROOT := $(shell \
-    dir=$$(pwd); \
-    while [ "$${dir}" != "/" ]; do \
-        if [ -f "$${dir}/$(COTTIMAKE)" ]; then \
-            echo "$${dir}"; \
-            exit 0; \
-        fi; \
-        dir=$$(dirname "$$dir"); \
-    done)
+MAKE_ROOT := $(dir $(lastword $(MAKEFILE_LIST)))
 
 include $(MAKE_ROOT)/colors.mk
 include $(MAKE_ROOT)/constants.mk
@@ -55,6 +47,8 @@ ifneq (,$(GDB_SCRIPT))
 GDBFLAGS += -x $(GDB_SCRIPT)
 endif
 
+# Add dependency generation flags for compiler
+CFLAGS += -MMD -MP
 
 # Check if all variables are ok
 include $(MAKE_ROOT)/arg_check.mk
@@ -68,7 +62,6 @@ BIN 		:= $(BUILD_DIR)/$(EXE).bin
 COMPILE_COMMANDS := $(BUILD_DIR)/compile_commands.json
 SCAN_BUILD_DIR := $(BUILD_DIR)/scan_build
 
-# If you are using a custom linker script, don't use the default crt0.S files
 ifneq (,$(LDSCRIPT))
 LDFLAGS += -T $(LDSCRIPT)
 endif
@@ -76,8 +69,6 @@ endif
 SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c) $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
 SRCS := $(sort $(SRCS))
 
-HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
-HEADERS := $(sort $(HEADERS))
 HEADER_FLAGS := $(addprefix -I , $(INC_DIRS))
 
 OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS))
@@ -85,6 +76,8 @@ OBJS := $(patsubst %.c, %.o, $(OBJS))
 OBJS := $(patsubst %.s, %_asm.o, $(OBJS))
 OBJS := $(patsubst %.S, %_asm.o, $(OBJS))
 OBJS := $(sort $(OBJS))
+
+DEPS := $(patsubst %.o, %.d, $(OBJS))
 
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
 
@@ -200,17 +193,17 @@ $(ELF): $(OBJS)
 	printf "$(MSG_COMPILE_OK)"
 
 # Compiling object files from C sources
-$(BUILD_DIR)/%.o: %.c $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%.o: %.c $(LDSCRIPT) Makefile | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_C_FILE)"
 	$(T_CC) $(CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources ending with ".s"
-$(BUILD_DIR)/%_asm.o: %.s $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%_asm.o: %.s $(LDSCRIPT) Makefile | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
 	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources ending with ".S"
-$(BUILD_DIR)/%_asm.o: %.S $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%_asm.o: %.S $(LDSCRIPT) Makefile | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
 	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
@@ -222,3 +215,5 @@ $(BIN): $(ELF)
 # Folders
 $(BUILD_SRC_DIRS):
 	mkdir -p $@
+
+-include $(DEPS)
