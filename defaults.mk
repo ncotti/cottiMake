@@ -69,10 +69,16 @@ GDBFLAGS ?=
 GDB_SCRIPT ?=
 
 #------------------------------------------------------------------------------
-# Extra variables
+# Run-time variables
 #------------------------------------------------------------------------------
 # Name of the executable ".elf" file (without extension)
 EXE ?= exe
 
+# Parameters used when running the executable file
+EXEFLAGS ?=
+
+#------------------------------------------------------------------------------
+# Extra variables TODO better name?
+#------------------------------------------------------------------------------
 # Name of the folder where all build artifacts will be generated
 BUILD_DIR ?= build

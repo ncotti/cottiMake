@@ -1,6 +1,6 @@
 .PHONY: print_src ## Print source files
 print_src:
-	printf "$(MAGENTA)Source files:$(NC)\n"
+	printf "$(BOLD_MAGENTA)Source files:$(NC)\n"
 	for src in $(SRCS); do \
 		printf "$${src}\n"; \
 	done
@@ -8,7 +8,7 @@ print_src:
 
 .PHONY: print_obj ## Print object files
 print_obj:
-	printf "$(MAGENTA)Object files:$(NC)\n"
+	printf "$(BOLD_MAGENTA)Object files:$(NC)\n"
 	for obj in $(OBJS); do \
 		printf "$${obj}\n"; \
 	done
@@ -17,7 +17,7 @@ print_obj:
 
 .PHONY: print_header ## Print header files
 print_header:
-	printf "$(MAGENTA)Header files:$(NC)\n"
+	printf "$(BOLD_MAGENTA)Header files:$(NC)\n"
 	for header in $(HEADERS); do \
 		printf "$${header}\n"; \
 	done

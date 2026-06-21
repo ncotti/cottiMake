@@ -55,11 +55,15 @@ endef
 # Info messages
 #------------------------------------------------------------------------------
 define MSG_CLEAN_OK
-$(GREEN)All files successfully erased$(NC) $(CHECKMARK)\n
+$(BOLD_GREEN)All files successfully erased$(NC) $(CHECKMARK)\n
 endef
 
 define MSG_COMPILE_OK
-$(GREEN)Compilation successful$(NC) $(CHECKMARK)\n
+$(BOLD_GREEN)Compilation successful$(NC) $(CHECKMARK)\n
+endef
+
+define MSG_RUN
+$(BOLD_MAGENTA)Executing: $(ELF) $(EXEFLAGS)$(NC)\n
 endef
 
 #------------------------------------------------------------------------------

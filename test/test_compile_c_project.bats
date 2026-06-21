@@ -103,3 +103,25 @@ teardown_file() {
     assert_success
     refute_output
 }
+
+@test "Run executable" {
+    run make -C "${PROJECT_DIR}" run
+    assert_success
+    assert_output --partial "Executing: ${ELF_FILE}"
+    assert_output --partial "C_project_out: 3"
+
+    run make -C "${PROJECT_DIR}" run \
+        EXEFLAGS="--flag"
+    assert_success
+    assert_output --partial "Executing: ${ELF_FILE} --flag"
+    assert_output --partial "C_project_out: 3"
+}
+
+@test "Debug executable" {
+    # run make -C "${PROJECT_DIR}" debug
+    # assert_success
+    # assert_output --partial "Debugging build/c_project.elf"
+    # assert_output --partial "C_project_out: 3"
+    false
+    # Some output from gdb script?
+}

@@ -115,7 +115,7 @@ help:
 	| sort \
 	| awk 'BEGIN {FS=":|## "}; \
 	       {gsub(/^[ \t]+|[ \t]+$$/, "", $$3); \
-	        printf "$(CYAN)%-12s$(NC) %s\n", $$3, $$4}'
+	        printf "$(BOLD_CYAN)%-12s$(NC) %s\n", $$3, $$4}'
 
 .PHONY: bin ## Generate binary file, without ELF headers.
 bin: $(BIN)
@@ -127,11 +127,12 @@ clean:
 		printf "$(MSG_CLEAN_OK)"; \
 	fi
 
-.PHONY: run ## Execute compile program
+.PHONY: run ## Execute program
 run: compile
-	$(ELF)
+	printf "$(MSG_RUN)"
+	$(ELF) $(EXEFLAGS)
 
-.PHONY: debug ## Debug with gdb
+.PHONY: debug ## Debug executable file
 debug: compile
 	$(T_GDB) $(GDBFLAGS) "$(ELF)"
 
