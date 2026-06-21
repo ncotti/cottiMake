@@ -1,1 +1,0 @@
-.equ seventh_arg, 0x7

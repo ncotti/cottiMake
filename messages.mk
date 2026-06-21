@@ -76,13 +76,20 @@ $(BOLD_GREEN)Compilation successful$(NC) $(CHECKMARK)\n
 endef
 
 define MSG_RUN
-$(BOLD_MAGENTA)Executing: $(ELF) $(EXEFLAGS)$(NC)\n
+$(BOLD_MAGENTA)Executing:$(NC)\n
 endef
 
 define MSG_DEBUG
-$(BOLD_MAGENTA)Debugging: $(ELF)$(NC)\n
+$(BOLD_MAGENTA)Debugging:$(NC)\n
 endef
 
+define MSG_SIM
+$(BOLD_MAGENTA)Running simulation in a new terminal:$(NC)\n
+endef
+
+define MSG_SIM_CLOSING
+$(BOLD_MAGENTA)Closing automatically in $(SIM_TIMEOUT_TO_EXIT) seconds.\nOutput will be sent to $(SIM_OUTPUT_FILE)$(NC)\n
+endef
 #------------------------------------------------------------------------------
 # Compilation step messages
 #------------------------------------------------------------------------------

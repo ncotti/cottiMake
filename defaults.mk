@@ -25,12 +25,12 @@ endif
 
 # Assembler, used to compile an ".S" or ".s" file into an object file ".o"
 ifeq ($(origin AS), default)
-AS := as
+AS := $(CC)
 endif
 
 # Linker, used when merging all object files into an executable file ".elf"
 ifeq ($(origin LD), default)
-LD := gcc
+LD := $(CC)
 endif
 
 # GDB debugger

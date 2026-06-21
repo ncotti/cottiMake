@@ -50,7 +50,11 @@ T_OBJCOPY 	:= $(CROSS_COMPILE)$(OBJCOPY)
 T_GDB		:= $(CROSS_COMPILE)$(GDB)
 
 # Implicit GDB flags
-GDBFLAGS += -q -x "$(GDB_SCRIPT)"
+GDBFLAGS += -q
+ifneq (,$(GDB_SCRIPT))
+GDBFLAGS += -x $(GDB_SCRIPT)
+endif
+
 
 # Check if all variables are ok
 include $(MAKE_ROOT)/arg_check.mk
@@ -86,6 +90,9 @@ BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
 
 # Process ID of the last simulator instance that was run
 SIM_PID_FILE := $(BUILD_DIR)/sim_pid_file.pid
+SIM_OUTPUT_FILE := $(BUILD_DIR)/sim_output.txt
+
+SIM_TIMEOUT_TO_EXIT := 10
 
 # Add flag in simulator to create a pid file to later close it
 ifneq ($(findstring qemu,$(SIM)),)
@@ -143,12 +150,17 @@ clean:
 .PHONY: run ## Execute program
 run: $(ELF)
 	printf "$(MSG_RUN)"
+	printf "$(MAGENTA)$(ELF) $(EXEFLAGS)$(NC)\n"
 	$(ELF) $(EXEFLAGS)
 
 .PHONY: sim ## Execute program in simulation environment
 sim: $(ELF) sim_kill
 	printf "$(MSG_SIM)"
-	gnome-terminal -- bash -c "$(SIM) $(SIMFLAGS)"
+	printf "$(MAGENTA)$(SIM) $(SIMFLAGS)$(NC)\n"
+	gnome-terminal -- bash -c "\
+		$(SIM) $(SIMFLAGS) |& tee $(SIM_OUTPUT_FILE); \
+		printf '$(MSG_SIM_CLOSING)'; \
+		read -s -t $(SIM_TIMEOUT_TO_EXIT)"; \
 
 .PHONY: sim_kill ## Kills a running simulator instance
 sim_kill:
@@ -161,7 +173,8 @@ sim_kill:
 .PHONY: debug ## Debug executable file
 debug: $(ELF)
 	printf "$(MSG_DEBUG)"
-	$(T_GDB) $(GDBFLAGS) "$(ELF)"
+	printf "$(MAGENTA)$(T_GDB) $(GDBFLAGS) $(ELF)$(NC)\n"
+	$(T_GDB) $(GDBFLAGS) $(ELF)
 
 .PHONY: test ## Compile and execute tests
 test: $(ELF)
@@ -192,12 +205,12 @@ $(BUILD_DIR)/%.o: %.c $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
 	$(T_CC) $(CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources ending with ".s"
-$(BUILD_DIR)/%.o: %.s $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%_asm.o: %.s $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
 	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources ending with ".S"
-$(BUILD_DIR)/%.o: %.S $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
+$(BUILD_DIR)/%_asm.o: %.S $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
 	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
