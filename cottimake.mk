@@ -38,38 +38,32 @@ include $(MAKE_ROOT)/messages.mk
 #------------------------------------------------------------------------------
 # Used-defined variables: default values
 #------------------------------------------------------------------------------
-
 # Default values for user variables
 include $(MAKE_ROOT)/defaults.mk
 
+# The following are the result of combining the chosen tools and toolchain
+T_CC		:= $(CROSS_COMPILE)$(CC)
+T_AS		:= $(CROSS_COMPILE)$(AS)
+T_LD		:= $(CROSS_COMPILE)$(LD)
+T_OBJDUMP	:= $(CROSS_COMPILE)$(OBJDUMP)
+T_OBJCOPY 	:= $(CROSS_COMPILE)$(OBJCOPY)
+T_GDB		:= $(CROSS_COMPILE)$(GDB)
+
+# Implicit GDB flags
+GDB_FLAGS += -q -x "$(GDB_SCRIPT)"
+
 # Check if all variables are ok
 include $(MAKE_ROOT)/arg_check.mk
-
-## The following are the result of combining the chosen tools and toolchain
-T_CC		:= $(TOOLCHAIN)$(CC)
-T_AS		:= $(TOOLCHAIN)$(AS)
-T_LD		:= $(TOOLCHAIN)$(LD)
-T_OBJDUMP	:= $(TOOLCHAIN)$(OBJDUMP)
-T_OBJCOPY 	:= $(TOOLCHAIN)$(OBJCOPY)
 
 #------------------------------------------------------------------------------
 # File location
 #------------------------------------------------------------------------------
 BUILD_DIR	:= build
-INFO_DIR 	:= $(BUILD_DIR)/info
 ELF 		:= $(BUILD_DIR)/$(EXE).elf
 BIN 		:= $(BUILD_DIR)/$(EXE).bin
-MAP			:= $(INFO_DIR)/memory.map
 
 COMPILE_COMMANDS := $(BUILD_DIR)/compile_commands.json
 SCAN_BUILD_DIR := $(BUILD_DIR)/scan_build
-
-# If you use "ld" or "gcc" as linker, the memory map option is declared different
-ifneq (,$(findstring -ld, $(T_LD)))
-LDFLAGS += -Map $(MAP)
-else
-LDFLAGS += -Wl,-Map=$(MAP)
-endif
 
 # If you are using a custom linker script, don't use the default crt0.S files
 ifneq (,$(LDSCRIPT))
@@ -82,15 +76,11 @@ HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/
 HEADER_FLAGS := $(addprefix -I , $(INC_DIRS))
 
 # TODO add _asm to assembly object files
-OBJS := $(patsubst /%,%, $(SRCS))
-OBJS := $(addprefix $(BUILD_DIR)/, $(OBJS))
+OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS))
 OBJS := $(patsubst %.c, %.o, $(OBJS))
 OBJS := $(patsubst %.s, %.o, $(OBJS))
 
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
-
-SRCS := $(sort $(SRCS))
-OBJS := $(sort $(OBJS))
 
 #------------------------------------------------------------------------------
 # User targets
@@ -113,13 +103,7 @@ OBJS := $(sort $(OBJS))
 # 	$(MAKE) tidy
 
 .PHONY: compile ## Private compile command
-compile:
-	if $(MAKE) --no-print-directory -q $(ELF); then \
-		printf "$(MSG_COMPILE_DO_NOTHING)"; \
-	else \
-		$(MAKE) --no-print-directory $(ELF) && \
-		printf "$(MSG_COMPILE_OK)"; \
-	fi
+compile: $(ELF)
 
 .PHONY: tidy ## Do static analysis with clang-tidy
 tidy: $(SRCS)
@@ -135,21 +119,13 @@ help:
 	        printf "$(CYAN)%-12s$(NC) %s\n", $$3, $$4}'
 
 .PHONY: bin ## Generate binary file, without ELF headers.
-bin:
-	if $(MAKE) --no-print-directory -q $(BIN); then \
-		printf "$(MSG_COMPILE_DO_NOTHING)"; \
-	else \
-		$(MAKE) --no-print-directory $(BIN) && \
-		printf "$(MSG_COMPILE_OK)"; \
-	fi
+bin: $(BIN)
 
 .PHONY: clean ## Erase contents of build directory.
 clean:
 	if [ -d "$(BUILD_DIR)" ]; then \
 		rm -Rf $(BUILD_DIR) && \
 		printf "$(MSG_CLEAN_OK)"; \
-	else \
-		printf "$(MSG_CLEAN_EMPTY)"; \
 	fi
 
 .PHONY: run ## Execute compile program
@@ -158,7 +134,7 @@ run: compile
 
 .PHONY: debug ## Debug with gdb
 debug: compile
-	gdb $(ELF)
+	$(T_GDB) $(GDBFLAGS) "$(ELF)"
 
 .PHONY: test ## Compile and execute tests
 test: compile
@@ -178,9 +154,10 @@ include $(MAKE_ROOT)/info_targets.mk
 # Compilation targets
 #------------------------------------------------------------------------------
 # Main executable linking
-$(ELF): $(OBJS) | $(INFO_DIR)
+$(ELF): $(OBJS)
 	printf "$(MSG_LINK)"
 	$(T_LD) -o $@ $^ $(LDFLAGS)
+	printf "$(MSG_COMPILE_OK)"
 
 # Compiling object files from C sources
 $(BUILD_DIR)/%.o: %.c $(HEADERS) $(LDSCRIPT) | $(BUILD_SRC_DIRS)
@@ -198,5 +175,5 @@ $(BIN): $(ELF)
 	$(T_OBJCOPY) -O binary $(ELF) $(BIN)
 
 # Folders
-$(BUILD_SRC_DIRS) $(INFO_DIR):
+$(BUILD_SRC_DIRS):
 	mkdir -p $@

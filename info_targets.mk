@@ -4,6 +4,8 @@
 #------------------------------------------------------------------------------
 # Variables
 #------------------------------------------------------------------------------
+INFO_DIR 	:= $(BUILD_DIR)/info
+
 OBJ_HEADERS := $(patsubst %.o, %.header, $(OBJS) $(ELF))
 OBJ_HEADERS := $(patsubst %.elf, %.header, $(OBJ_HEADERS))
 OBJ_HEADERS := $(patsubst $(BUILD_DIR)%, $(INFO_DIR)%, $(OBJ_HEADERS))
@@ -12,24 +14,23 @@ DASM_FILES := $(patsubst %.header, %.d, $(OBJ_HEADERS))
 
 INFO_SRC_DIRS := $(addprefix $(INFO_DIR)/, $(SRC_DIRS))
 
+#MAP			:= $(INFO_DIR)/memory.map
+
+# If you use "ld" or "gcc" as linker, the memory map option is declared different
+# ifneq (,$(findstring -ld, $(T_LD)))
+# LDFLAGS += -Map $(MAP)
+# else
+# LDFLAGS += -Wl,-Map=$(MAP)
+# endif
+
 #------------------------------------------------------------------------------
 # User targets
 #------------------------------------------------------------------------------
 .PHONY: headers ## Generate symbol table and section headers for all object files.
-headers:
-	if $(MAKE) --no-print-directory -q $(OBJ_HEADERS); then \
-		printf "$(MSG_HEADERS_DO_NOTHING)"; \
-	else \
-		$(MAKE) --no-print-directory $(OBJ_HEADERS); \
-	fi
+headers: $(OBJ_HEADERS)
 
 .PHONY: dasm ## Generate disassemble for all object files and elf file.
-dasm:
-	if $(MAKE) --no-print-directory -q $(DASM_FILES); then \
-		printf "$(MSG_DASM_DO_NOTHING)"; \
-	else \
-		$(MAKE) --no-print-directory $(DASM_FILES); \
-	fi
+dasm: $(DASM_FILES)
 
 #------------------------------------------------------------------------------
 # Information targets

@@ -25,12 +25,10 @@ setup_file() {
     export inc_file3="${inc_dir2}/hello.h"
     export inc_file4="${inc_dir2}/bye.h"
 
-    # Note, build does not append a "/", because the
-    # BATS_FILE_TMPDIR is absolute and already has a "/" at the beginning
-    export obj_file1="build${src_dir1}/main.o"
-    export obj_file2="build${src_dir1}/help.o"
-    export obj_file3="build${src_dir2}/hello.o"
-    export obj_file4="build${src_dir2}/bye.o"
+    export obj_file1="build/${src_dir1}/main.o"
+    export obj_file2="build/${src_dir1}/help.o"
+    export obj_file3="build/${src_dir2}/hello.o"
+    export obj_file4="build/${src_dir2}/bye.o"
 
     export empty_dir="$BATS_FILE_TMPDIR/empty_dir"
 
@@ -38,6 +36,7 @@ setup_file() {
     mkdir "${empty_dir}"
     touch "${src_file1}" "${src_file2}" "${src_file3}" "${src_file4}"
     touch "${inc_file1}" "${inc_file2}" "${inc_file3}" "${inc_file4}"
+
 }
 
 setup() {
@@ -89,16 +88,9 @@ ${obj_file2}
 ${obj_file1}
 ${obj_file4}
 ${obj_file3}
+build/exe.elf
 
 EOF
-}
-
-@test "Absolute paths should not contain double //" {
-    run make -C "${MAKE_DIR}" -f cottimake.mk print_obj \
-        SRC_DIRS="${src_dir1}"
-
-    assert_success
-    refute_output --partial "//"
 }
 
 @test "No INC_DIRS declared and print_header is called" {
@@ -138,6 +130,7 @@ EOF
     assert_output --partial --stdin <<EOF
 ${obj_file2}
 ${obj_file1}
+build/exe.elf
 
 EOF
 

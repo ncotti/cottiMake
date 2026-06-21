@@ -32,15 +32,15 @@ teardown_file() {
     run make -C "${PROJECT_DIR}" compile
     assert_success
 
-    run make -C "${PROJECT_DIR}" compile
+    run make -C "${PROJECT_DIR}" --no-print-directory compile
     assert_success
-    assert_output --partial "Nothing to compile."
+    refute_output
 }
 
 @test "Clean command works as expected" {
-    run make -C "${PROJECT_DIR}" clean
+    run make -C "${PROJECT_DIR}" --no-print-directory clean
     assert_success
-    assert_output --partial "Nothing to clean."
+    refute_output
 
     run make -C "${PROJECT_DIR}" compile
     assert_success
@@ -48,11 +48,11 @@ teardown_file() {
     run make -C "${PROJECT_DIR}" clean
     assert_success
     assert_output --partial "erased"
-    assert_dir_not_exist ${BUILD_DIR}
+    assert_dir_not_exist "${BUILD_DIR}"
 
-    run make -C "${PROJECT_DIR}" clean
+    run make -C "${PROJECT_DIR}" --no-print-directory clean
     assert_success
-    assert_output --partial "Nothing to clean."
+    refute_output
 }
 
 @test "Expected compilation output" {
@@ -87,9 +87,9 @@ teardown_file() {
     assert_output --partial "build/info/src/helper.d"
     assert_output --partial "build/info/c_project_exe.d"
 
-    run make -C "${PROJECT_DIR}" dasm
+    run make -C "${PROJECT_DIR}" --no-print-directory dasm
     assert_success
-    assert_output --partial "Nothing to disassemble."
+    refute_output
 }
 
 @test "Header generation" {
@@ -99,7 +99,7 @@ teardown_file() {
     assert_output --partial "build/info/src/helper.header"
     assert_output --partial "build/info/c_project_exe.header"
 
-    run make -C "${PROJECT_DIR}" headers
+    run make -C "${PROJECT_DIR}" --no-print-directory headers
     assert_success
-    assert_output --partial "Nothing to generate."
+    refute_output
 }

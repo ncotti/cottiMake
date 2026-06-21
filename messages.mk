@@ -45,31 +45,21 @@ Variable "INC_DIRS" should not have repeated directories.
 Repeated directories:
 endef
 
+define MSG_INVALID_TOOLCHAIN
+$(M_RED)[ERROR #008]$(M_NC)
+CROSS_COMPILE toolchain does not exist.
+Specified toolchain was:
+endef
+
 #------------------------------------------------------------------------------
 # Info messages
 #------------------------------------------------------------------------------
-define MSG_CLEAN_EMPTY
-$(CYAN)Nothing to clean.$(NC)\n
-endef
-
 define MSG_CLEAN_OK
 $(GREEN)All files successfully erased$(NC) $(CHECKMARK)\n
 endef
 
-define MSG_COMPILE_DO_NOTHING
-$(CYAN)Nothing to compile.$(NC)\n
-endef
-
 define MSG_COMPILE_OK
 $(GREEN)Compilation successful$(NC) $(CHECKMARK)\n
-endef
-
-define MSG_DASM_DO_NOTHING
-$(CYAN)Nothing to disassemble.$(NC)\n
-endef
-
-define MSG_HEADERS_DO_NOTHING
-$(CYAN)Nothing to generate.$(NC)\n
 endef
 
 #------------------------------------------------------------------------------

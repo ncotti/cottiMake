@@ -16,7 +16,7 @@ INC_DIRS ?=
 # Toolchain used to compile.
 # Compile commands will have the value of the toolchain prepended.
 # E.g.: arm-none-eabi-, arm-linux-gnueabihf-, (left empty), etc
-TOOLCHAIN ?=
+CROSS_COMPILE ?=
 
 # C compiler, used to compile a ".c" file into an object file ".o"
 ifeq ($(origin CC), default)
@@ -32,6 +32,11 @@ endif
 ifeq ($(origin LD), default)
 LD := gcc
 endif
+
+# GDB debugger
+# If $(CROSS_COMPILE)$(GDB) exists, it will be used.
+# Otherwise, the binary defined here will be used instead.
+GDB ?= gdb
 
 # Objdump binutil, used to create disassembly files and section headers
 OBJDUMP	?= objdump
@@ -51,15 +56,20 @@ ASFLAGS ?= $(CFLAGS)
 # Linker flags
 LDFLAGS ?= -g
 
+# Linker script (if any)
+LDSCRIPT ?=
+
+# GDB flags.
+# The following flags are always added to the GDB command by default:
+# -q
+# -x $(GDB_SCRIPT)
+GDBFLAGS ?=
+
+# Name of the gdb script (if any)
+GDB_SCRIPT ?=
+
 #------------------------------------------------------------------------------
 # Extra variables
 #------------------------------------------------------------------------------
-# TODO
-# Linker script (can be empty)
-LDSCRIPT ?=
-
 # Name of the executable ".elf" file (without extension)
 EXE ?= exe
-
-# Name of the gdb script (can be empty)
-GDB_SCRIPT ?=

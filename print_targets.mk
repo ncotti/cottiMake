@@ -12,6 +12,7 @@ print_obj:
 	for obj in $(OBJS); do \
 		printf "$${obj}\n"; \
 	done
+	printf "$(ELF)\n"; \
 	printf "\n"
 
 .PHONY: print_header ## Print header files

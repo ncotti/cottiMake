@@ -31,6 +31,8 @@ setup_file() {
     mkdir "${empty_dir}"
     touch "${src_file1}" "${src_file2}" "${src_file3}" "${src_file4}"
     touch "${inc_file1}" "${inc_file2}" "${inc_file3}" "${inc_file4}"
+
+    printf "int main(void) {return 0;}\n" >> "${src_file1}"
 }
 
 setup() {
@@ -132,3 +134,46 @@ teardown_file() {
     assert_output --partial "${inc_dir1}"
 }
 
+@test "Wrong toolchain fails" {
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        CROSS_COMPILE="arch-os-abi-"
+
+    assert_failure
+    assert_output --partial "[ERROR #008]"
+    assert_output --partial "arch-os-abi-gcc"
+}
+
+@test "Correct toolchain, but wrong binutils" {
+    # Install with sudo apt install arm-none-eabi
+    command -v arm-none-eabi-gcc
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        CROSS_COMPILE="" \
+        CC="xd"
+
+    assert_failure
+    assert_output --partial "[ERROR #008]"
+    assert_output --partial "xd"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        CROSS_COMPILE="arm-none-eabi-" \
+        LD="xd"
+
+    assert_failure
+    assert_output --partial "[ERROR #008]"
+    assert_output --partial "xd"
+}
+
+@test "Simple compilation should succeed" {
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}"
+    assert_success
+    assert_file_exist "${MAKE_DIR}/build/exe.elf"
+}

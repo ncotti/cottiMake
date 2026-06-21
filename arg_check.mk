@@ -57,4 +57,36 @@ ifneq ($(strip $(EMPTY_DIRS)),)
 $(error $(MSG_EMPTY_INC_DIR) $(EMPTY_DIRS))
 endif
 
+#------------------------------------------------------------------------------
+# Toolchain verification
+#------------------------------------------------------------------------------
+ifeq ($(shell command -v $(T_CC) 2>/dev/null),)
+$(error $(MSG_INVALID_TOOLCHAIN) $(T_CC))
+endif
+
+ifeq ($(shell command -v $(T_AS) 2>/dev/null),)
+$(error $(MSG_INVALID_TOOLCHAIN) $(T_AS))
+endif
+
+ifeq ($(shell command -v $(T_LD) 2>/dev/null),)
+$(error $(MSG_INVALID_TOOLCHAIN) $(T_LD))
+endif
+
+ifeq ($(shell command -v $(T_OBJDUMP) 2>/dev/null),)
+$(error $(MSG_INVALID_TOOLCHAIN) $(T_OBJDUMP))
+endif
+
+ifeq ($(shell command -v $(T_OBJCOPY) 2>/dev/null),)
+$(error $(MSG_INVALID_TOOLCHAIN) $(T_OBJCOPY))
+endif
+
+# For GDB, the user might have defined "gdb-multiarch", therefore it could
+# not exists inside the toolchain and that would be fine
+ifeq ($(shell command -v $(T_GDB) 2>/dev/null),)
+T_GDB := $(GDB)
+ifeq ($(shell command -v $(T_GDB) 2>/dev/null),)
+$(error $(MSG_INVALID_TOOLCHAIN) $(T_GDB))
+endif
+endif
+
 endif # SRC_DIRS and INC_DIRS
