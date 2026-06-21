@@ -47,7 +47,13 @@ EXTRA_GDBFLAGS += -x $(GDBSCRIPT)
 endif
 
 # Add dependency generation flags for compiler
-DEPFLAGS := -MMD -MP
+EXTRA_CFLAGS := -MMD -MP
+
+# If you are using the C compiler for assembly files, use all the extra
+# cflags for assembling
+ifeq ($(T_CC),$(T_AS))
+EXTRA_ASFLAGS += $(EXTRA_CFLAGS)
+endif
 
 # Check if all variables are ok
 include $(MAKE_ROOT)/arg_check.mk
@@ -200,17 +206,17 @@ $(ELF): $(OBJS)
 # Compiling object files from C sources
 $(BUILD_DIR)/%.o: %.c $(MISC_DEPS) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_C_FILE)"
-	$(T_CC) $(CFLAGS) $(DEPFLAGS) $(HEADER_FLAGS) -o $@ -c $<
+	$(T_CC) $(CFLAGS) $(EXTRA_CFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources ending with ".s"
 $(BUILD_DIR)/%_asm.o: %.s $(MISC_DEPS) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
-	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
+	$(T_AS) $(ASFLAGS) $(EXTRA_ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Compiling object files from asm sources ending with ".S"
 $(BUILD_DIR)/%_asm.o: %.S $(MISC_DEPS) | $(BUILD_SRC_DIRS)
 	printf "$(MSG_COMPILE_ASM_FILE)"
-	$(T_AS) $(ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
+	$(T_AS) $(ASFLAGS) $(EXTRA_ASFLAGS) $(HEADER_FLAGS) -o $@ -c $<
 
 # Copy ELF file into BIN file
 $(BIN): $(ELF)
