@@ -32,11 +32,11 @@ teardown_file() {
 }
 
 @test "All targets have a help string" {
-    targets=$(awk -F ":" '/^[a-zA-Z0-9_-]+:/ {print $1}' ./*.mk | sort)
+    targets=$(awk -F ":" '/^[a-zA-Z0-9_-]+:/ {print $1}' ./*.mk | sort -u)
     targets_qtty=$(echo "${targets}" | wc -l)
 
     help_targets=$(make --no-print-directory -C "${MAKE_DIR}" \
-        -f cottimake.mk help | sort | awk '{
+        -f cottimake.mk help | sort -u | awk '{
         gsub(/^[a-zA-Z0-9_-]+[ \t]+/, "", $1); print $1}')
     help_targets_qtty=$(echo "${help_targets}" | wc -l)
 
@@ -45,10 +45,10 @@ teardown_file() {
 }
 
 @test "All targets have the .PHONY attribute" {
-    targets=$(awk -F ":" '/^[a-zA-Z0-9_-]+:/ {print $1}' ./*.mk | sort)
+    targets=$(awk -F ":" '/^[a-zA-Z0-9_-]+:/ {print $1}' ./*.mk | sort -u)
 
     phony_targets=$(awk -F ":|##" '/^.PHONY:/ {
-        gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}' ./*.mk | sort)
+        gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}' ./*.mk | sort -u)
 
     [ -n "${targets}" ]
     assert_equal "${targets}" "${phony_targets}"

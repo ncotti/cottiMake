@@ -14,7 +14,7 @@ SHELL=/bin/bash
 COTTIMAKE := cottimake.mk
 
 # Path to this Makefile, relative to the location from where it was called.
-# E.g. If your project looks like the following, and you execute "make" from 
+# E.g. If your project looks like the following, and you execute "make" from
 # the "." directory, then MAKE_ROOT will be equal to "cottimake":
 # .
 # ├── Makefile ( Your own project Makefile, which contains the statement
@@ -86,19 +86,6 @@ DEPS := $(patsubst %.o, %.d, $(OBJS))
 
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
 
-# Process ID of the last simulator instance that was run
-SIM_PID_FILE := $(BUILD_DIR)/sim.pid
-SIM_OUTPUT_FILE := $(BUILD_DIR)/sim_output.txt
-
-SIM_TIMEOUT_TO_EXIT := 10
-
-# Add flag in simulator to create a pid file to later close it
-ifneq ($(findstring qemu,$(SIM)),)
-PIDFILE_SIMFLAG += -pidfile $(SIM_PID_FILE)
-else ifneq ($(findstring renode,$(SIM)),)
-PIDFILE_SIMFLAG += --pid-file $(SIM_PID_FILE)
-endif
-
 MISC_DEPS := $(LDSCRIPT) Makefile
 
 #------------------------------------------------------------------------------
@@ -153,28 +140,8 @@ run: $(ELF)
 	printf "$(MAGENTA)$(ELF) $(EXEFLAGS)$(NC)\n"
 	$(ELF) $(EXEFLAGS)
 
-.PHONY: sim ## Execute program in simulation environment
-sim: $(ELF) kill_sim
-	printf "$(MSG_SIM)"
-	printf "$(MAGENTA)$(SIM) $(SIMFLAGS) $(PIDFILE_SIMFLAG)$(NC)\n"
-	gnome-terminal -- bash -c "\
-		$(SIM) $(SIMFLAGS) $(PIDFILE_SIMFLAG) |& tee $(SIM_OUTPUT_FILE); \
-		printf '$(MSG_SIM_CLOSING)'; \
-		read -s -t $(SIM_TIMEOUT_TO_EXIT)";
-
-.PHONY: kill_sim ## Kills a running simulator instance
-kill_sim:
-	if [ -f "$(SIM_PID_FILE)" ]; then \
-		kill "$$(cat $(SIM_PID_FILE))" &>/dev/null; \
-		rm $(SIM_PID_FILE); \
-	fi
-
 .PHONY: debug ## Debug executable file
-ifndef SIM
 debug: $(ELF)
-else
-debug: $(ELF) sim
-endif
 	if [ -z $(filter -g,$(CFLAGS)) ]; then \
 		printf "$(MSG_DEBUG_NO_G_FLAG)"; \
 		exit 11; \
@@ -197,6 +164,8 @@ test: $(ELF)
 include $(MAKE_ROOT)/print_targets.mk
 
 include $(MAKE_ROOT)/info_targets.mk
+
+include $(MAKE_ROOT)/simulation_targets.mk
 
 #------------------------------------------------------------------------------
 # Compilation targets
