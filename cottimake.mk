@@ -87,7 +87,7 @@ DEPS := $(patsubst %.o, %.d, $(OBJS))
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
 
 # Process ID of the last simulator instance that was run
-SIM_PID_FILE := $(BUILD_DIR)/sim_pid_file.pid
+SIM_PID_FILE := $(BUILD_DIR)/sim.pid
 SIM_OUTPUT_FILE := $(BUILD_DIR)/sim_output.txt
 
 SIM_TIMEOUT_TO_EXIT := 10
@@ -154,24 +154,27 @@ run: $(ELF)
 	$(ELF) $(EXEFLAGS)
 
 .PHONY: sim ## Execute program in simulation environment
-sim: $(ELF) sim_kill
+sim: $(ELF) kill_sim
 	printf "$(MSG_SIM)"
 	printf "$(MAGENTA)$(SIM) $(SIMFLAGS) $(PIDFILE_SIMFLAG)$(NC)\n"
 	gnome-terminal -- bash -c "\
 		$(SIM) $(SIMFLAGS) $(PIDFILE_SIMFLAG) |& tee $(SIM_OUTPUT_FILE); \
 		printf '$(MSG_SIM_CLOSING)'; \
-		read -s -t $(SIM_TIMEOUT_TO_EXIT)"; \
+		read -s -t $(SIM_TIMEOUT_TO_EXIT)";
 
-.PHONY: sim_kill ## Kills a running simulator instance
-sim_kill:
+.PHONY: kill_sim ## Kills a running simulator instance
+kill_sim:
 	if [ -f "$(SIM_PID_FILE)" ]; then \
-		echo -n "Killing Renode... "; \
 		kill "$$(cat $(SIM_PID_FILE))" &>/dev/null; \
 		rm $(SIM_PID_FILE); \
 	fi
 
 .PHONY: debug ## Debug executable file
+ifndef SIM
 debug: $(ELF)
+else
+debug: $(ELF) sim
+endif
 	if [ -z $(filter -g,$(CFLAGS)) ]; then \
 		printf "$(MSG_DEBUG_NO_G_FLAG)"; \
 		exit 11; \
@@ -179,6 +182,7 @@ debug: $(ELF)
 	printf "$(MSG_DEBUG)"
 	printf "$(MAGENTA)$(T_GDB) $(GDBFLAGS) $(EXTRA_GDBFLAGS) $(ELF)$(NC)\n"
 	$(T_GDB) $(GDBFLAGS) $(EXTRA_GDBFLAGS) $(ELF)
+	$(MAKE) --no-print-directory kill_sim
 
 .PHONY: test ## Compile and execute tests
 test: $(ELF)
