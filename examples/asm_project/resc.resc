@@ -1,0 +1,11 @@
+:name: ARMv7A
+:description: Bare-bone ARMv7A, trying to imitate a Cortex-A8
+
+using sysbus
+
+mach create
+
+machine LoadPlatformDescription @platform.repl
+
+machine StartGdbServer 2159
+sysbus LoadELF @build/exe.elf

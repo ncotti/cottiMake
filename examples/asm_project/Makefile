@@ -18,7 +18,7 @@ EXE ?= exe
 
 SIM ?= qemu-system-arm
 
-define _SIMFLAGS
+define _SIMFLAGS_QEMU
 -M realview-pb-a8 \
 -m 32M \
 -no-reboot -nographic \
@@ -28,6 +28,14 @@ define _SIMFLAGS
 -device loader,file=$(BUILD_DIR)/$(EXE).elf
 endef
 
-SIMFLAGS ?= $(_SIMFLAGS)
+define _SIMFLAGS_RENODE
+resc.resc
+endef
+
+ifneq ($(findstring qemu,$(SIM)),)
+SIMFLAGS ?= $(_SIMFLAGS_QEMU)
+else ifneq ($(findstring renode,$(SIM)),)
+SIMFLAGS ?= $(_SIMFLAGS_RENODE)
+endif
 
 include ../../cottimake.mk
