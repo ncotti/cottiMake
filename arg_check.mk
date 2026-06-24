@@ -84,6 +84,10 @@ ifeq ($(shell command -v $(T_OBJCOPY) 2>/dev/null),)
 $(error $(MSG_INVALID_TOOLCHAIN) $(T_OBJCOPY))
 endif
 
+ifeq ($(shell command -v $(T_AR) 2>/dev/null),)
+$(error $(MSG_INVALID_TOOLCHAIN) $(T_AR))
+endif
+
 # For GDB, the user might have defined "gdb-multiarch", therefore it could
 # not exists inside the toolchain and that would be fine
 ifeq ($(shell command -v $(T_GDB) 2>/dev/null),)

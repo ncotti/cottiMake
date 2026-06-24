@@ -47,7 +47,7 @@ endef
 
 define MSG_INVALID_TOOLCHAIN
 $(M_RED)[ERROR #008]$(M_NC)
-CROSS_COMPILE toolchain does not exist.
+Either CROSS_COMPILE toolchain or CC do not exist.
 Specified toolchain was:
 endef
 
@@ -76,7 +76,15 @@ $(BOLD_GREEN)All files successfully erased$(NC) $(CHECKMARK)\n
 endef
 
 define MSG_COMPILE_OK
-$(BOLD_GREEN)Compilation successful$(NC) $(CHECKMARK)\n
+$(BOLD_GREEN)Executable file successfully compiled$(NC) $(CHECKMARK)\n
+endef
+
+define MSG_STATIC_LIB_OK
+$(BOLD_GREEN)Static library successfully compiled$(NC) $(CHECKMARK)\n
+endef
+
+define MSG_DYNAMIC_LIB_OK
+$(BOLD_GREEN)Dynamic library successfully compiled$(NC) $(CHECKMARK)\n
 endef
 
 define MSG_RUN
@@ -94,6 +102,7 @@ endef
 define MSG_SIM_CLOSING
 $(BOLD_MAGENTA)Closing automatically in $(SIM_TIMEOUT_TO_EXIT) seconds.\nOutput will be sent to $(SIM_OUTPUT_FILE)$(NC)\n
 endef
+
 #------------------------------------------------------------------------------
 # Compilation step messages
 #------------------------------------------------------------------------------
@@ -111,6 +120,10 @@ endef
 
 define MSG_BIN
 $(MAGENTA)[BIN] $(NC) $@\n
+endef
+
+define MSG_AR
+$(MAGENTA)[AR]  $(NC) $@\n
 endef
 
 define MSG_HEADER_FILE

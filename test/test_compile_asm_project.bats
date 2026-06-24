@@ -45,7 +45,7 @@ teardown_file() {
 @test "Launching and killing QEMU simulation environment" {
     run make -C "${PROJECT_DIR}" sim \
         SIM="qemu-system-arm"
-    sleep 1
+    sleep 2
     assert_success
     assert_file_exists "${BUILD_DIR}/sim.pid"
 
@@ -63,7 +63,7 @@ teardown_file() {
         SIM="qemu-system-arm" \
         GDB="gdb-multiarch" \
         GDBSCRIPT="debug.gdb"
-    sleep 1
+    sleep 2
     assert_success
     assert_file_not_exist "${BUILD_DIR}/sim.pid"
     assert_output --partial "Value retrieved from gdb: 12"
@@ -74,7 +74,7 @@ teardown_file() {
 
     run make -C "${PROJECT_DIR}" sim \
         SIM="renode"
-    sleep 1
+    sleep 2
     assert_success
     assert_file_exists "${BUILD_DIR}/sim.pid"
 
@@ -92,7 +92,7 @@ teardown_file() {
         SIM="renode" \
         GDB="gdb-multiarch" \
         GDBSCRIPT="debug.gdb"
-    sleep 1
+    sleep 2
     assert_success
     assert_file_not_exist "${BUILD_DIR}/sim.pid"
     assert_output --partial "Value retrieved from gdb: 12"

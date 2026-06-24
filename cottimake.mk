@@ -10,9 +10,6 @@ SHELL=/bin/bash
 .SILENT:
 .DEFAULT_GOAL := help
 
-# Name of this file
-COTTIMAKE := cottimake.mk
-
 # Path to this Makefile, relative to the location from where it was called.
 # E.g. If your project looks like the following, and you execute "make" from
 # the "." directory, then MAKE_ROOT will be equal to "cottimake":
@@ -22,6 +19,9 @@ COTTIMAKE := cottimake.mk
 # └── cottimake
 #	  └── cottimake.mk (this file)
 MAKE_ROOT := $(dir $(lastword $(MAKEFILE_LIST)))
+
+# Name of the "main" Makefile, i.e., the one that was called from the terminal
+MAKE_ORIGIN := $(firstword $(MAKEFILE_LIST))
 
 include $(MAKE_ROOT)/colors.mk
 include $(MAKE_ROOT)/constants.mk
@@ -39,6 +39,7 @@ T_AS		:= $(CROSS_COMPILE)$(AS)
 T_LD		:= $(CROSS_COMPILE)$(LD)
 T_OBJDUMP	:= $(CROSS_COMPILE)$(OBJDUMP)
 T_OBJCOPY 	:= $(CROSS_COMPILE)$(OBJCOPY)
+T_AR		:= $(CROSS_COMPILE)$(AR)
 T_GDB		:= $(CROSS_COMPILE)$(GDB)
 
 EXTRA_GDBFLAGS := -q
@@ -68,13 +69,15 @@ COMPILE_COMMANDS := $(BUILD_DIR)/compile_commands.json
 SCAN_BUILD_DIR := $(BUILD_DIR)/scan_build
 
 ifneq (,$(LDSCRIPT))
-LDFLAGS += -T $(LDSCRIPT)
+EXTRA_LDFLAGS := -T $(LDSCRIPT)
 endif
 
 SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c) $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
 SRCS := $(sort $(SRCS))
 
-HEADER_FLAGS := $(addprefix -I , $(INC_DIRS))
+HEADER_FLAGS := $(addprefix -I,$(INC_DIRS))
+LIB_FLAGS := $(addprefix -L,$(LIB_DIRS))
+LIB_FLAGS += $(addprefix -l,$(LDLIBS))
 
 OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS))
 OBJS := $(patsubst %.c, %.o, $(OBJS))
@@ -86,7 +89,14 @@ DEPS := $(patsubst %.o, %.d, $(OBJS))
 
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
 
-MISC_DEPS := $(LDSCRIPT) Makefile
+MISC_DEPS := $(LDSCRIPT) $(MAKE_ORIGIN)
+
+# Strip handles multiple spaces in between values
+override LIB_DIRS := $(strip $(LIB_DIRS))
+
+override LIB_DIRS := $(subst $(SPACE),:,$(LIB_DIRS))
+
+LD_LIBRARY_PATH := $(if $(LD_LIBRARY_PATH),$(LIB_DIRS):$(LD_LIBRARY_PATH),$(LIB_DIRS))
 
 #------------------------------------------------------------------------------
 # User targets
@@ -137,8 +147,11 @@ clean:
 .PHONY: run ## Execute program
 run: $(ELF)
 	printf "$(MSG_RUN)"
+	if [ -n "$(LD_LIBRARY_PATH)" ]; then \
+		printf "$(MAGENTA)LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) \\ $(NC) \n"; \
+	fi
 	printf "$(MAGENTA)$(ELF) $(EXEFLAGS)$(NC)\n"
-	$(ELF) $(EXEFLAGS)
+	LD_LIBRARY_PATH=$(LD_LIBRARY_PATH) $(ELF) $(EXEFLAGS)
 
 .PHONY: debug ## Debug executable file
 debug: $(ELF)
@@ -167,13 +180,15 @@ include $(MAKE_ROOT)/info_targets.mk
 
 include $(MAKE_ROOT)/simulation_targets.mk
 
+include $(MAKE_ROOT)/lib_targets.mk
+
 #------------------------------------------------------------------------------
 # Compilation targets
 #------------------------------------------------------------------------------
 # Main executable linking
 $(ELF): $(OBJS)
 	printf "$(MSG_LINK)"
-	$(T_LD) -o $@ $^ $(LDFLAGS)
+	$(T_LD) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS) $(LIB_FLAGS)
 	printf "$(MSG_COMPILE_OK)"
 
 # Compiling object files from C sources

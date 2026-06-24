@@ -1,13 +1,19 @@
 ## This file contains default values for user-defined variables.
 
 #------------------------------------------------------------------------------
-# Source and include directories
+# Source include and lib directories
 #------------------------------------------------------------------------------
 # White-space separated list of paths where source files are.
+# All files ending with ".c", ".s" or ".S" will be listed as source files.
 SRC_DIRS ?=
 
-# White-space separated list of paths where header files are.
+# White-space separated list of paths where non-system header files are.
+# All files ending with ".h", ".s" or ".S" will be listed as header files.
 INC_DIRS ?=
+
+# White-space separated list of paths where non-system libraries are.
+# Library names must be defined in the "LDLIBS" variable
+LIB_DIRS ?=
 
 #------------------------------------------------------------------------------
 # Compiler and toolchain selection
@@ -48,6 +54,11 @@ OBJDUMP	?= objdump
 # Objcopy binutil, used to create stripped .bin and .hex files from .elf files
 OBJCOPY ?= objcopy
 
+# Archive binutil, used to create static libraries
+ifeq ($(origin AR), default)
+AR := ar
+endif
+
 # Program used to spawn new terminal windows
 # Some targets of this Makefile require launching a new program and, for that
 # purpose, create a new terminal for the user to see it running.
@@ -64,6 +75,10 @@ ASFLAGS ?= $(CFLAGS)
 
 # Linker flags
 LDFLAGS ?= -g
+
+# Libraries to link against.
+# Library <name>s must follow the convention: "lib<name>.so" or "lib<name>.a"
+LDLIBS ?=
 
 # Linker script (if any)
 LDSCRIPT ?=

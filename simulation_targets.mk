@@ -34,7 +34,7 @@ sim: $(ELF) kill_sim
 kill_sim:
 	if [ -f "$(SIM_PID_FILE)" ]; then \
 		kill "$$(cat $(SIM_PID_FILE))" &>/dev/null; \
-		rm $(SIM_PID_FILE); \
+		rm -f $(SIM_PID_FILE); \
 	fi
 
 # Add the prerequisite "sim" to the debug target

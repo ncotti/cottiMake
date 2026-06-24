@@ -2,7 +2,7 @@
 #define EXT1_H_
 
 #define EXT1_THREE 3
-#define EXT1_FOUR 3
+#define EXT1_FOUR 4
 
 int ext1_add3(int a);
 int ext1_add4(int a);
