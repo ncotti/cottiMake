@@ -1,4 +1,6 @@
 #!/usr/bin/env bats
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026  Nicolas Gabriel Cotti
 
 ## This file tests that a recompilation is triggered whenever a
 ## source file, header file, Makefile, or linker script are changed.

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026  Nicolas Gabriel Cotti
+
 ## CottiMake is a general purpose Makefile for C and ASM projects
 ## This is the main Makefile file, the one which should be included from
 ## your project's Makefile.

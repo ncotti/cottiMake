@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026  Nicolas Gabriel Cotti
+
 .extern ld_text_lma, ld_text_vma, ld_text_size
 .extern ld_data_origin, ld_data_vma, ld_data_size
 .extern ld_rodata_origin, ld_rodata_vma, ld_rodata_size

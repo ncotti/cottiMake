@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026  Nicolas Gabriel Cotti
+
 ## This file ensures that all user-defined variables are correct before
 ## proceeding with any compilation step
 

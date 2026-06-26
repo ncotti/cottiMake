@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026  Nicolas Gabriel Cotti
+
 #ifndef _INTERRUPT_H_
 #define _INTERRUPT_H_
 
