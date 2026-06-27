@@ -168,15 +168,7 @@ debug: $(ELF)
 	$(T_GDB) $(GDBFLAGS) $(EXTRA_GDBFLAGS) $(ELF)
 	$(MAKE) --no-print-directory kill_sim
 
-.PHONY: test ## Compile and execute tests
-test: $(ELF)
-	$(MAKE) -f test.mk \
-		BUILD_DIR="$(BUILD_DIR)" \
-		CFLAGS="$(CFLAGS)" \
-		LDFLAGS="$(LDFLAGS)" \
-		CC="$(CC)" \
-		LD="$(LD)" \
-		HEADER_FLAGS="$(HEADER_FLAGS)"
+include $(MAKE_ROOT)/test_targets.mk
 
 include $(MAKE_ROOT)/print_targets.mk
 

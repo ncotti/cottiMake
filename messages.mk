@@ -121,29 +121,37 @@ endef
 # Compilation step messages
 #------------------------------------------------------------------------------
 define MSG_COMPILE_C_FILE
-$(MAGENTA)[CC]  $(NC) $<\n
+$(MAGENTA)[CC]     $(NC) $<\n
 endef
 
 define MSG_COMPILE_ASM_FILE
-$(MAGENTA)[AS]  $(NC) $<\n
+$(MAGENTA)[AS]     $(NC) $<\n
 endef
 
 define MSG_LINK
-$(MAGENTA)[LD]  $(NC) $@\n
+$(MAGENTA)[LD]     $(NC) $@\n
 endef
 
 define MSG_BIN
-$(MAGENTA)[BIN] $(NC) $@\n
+$(MAGENTA)[BIN]    $(NC) $@\n
 endef
 
 define MSG_AR
-$(MAGENTA)[AR]  $(NC) $@\n
+$(MAGENTA)[AR]     $(NC) $@\n
 endef
 
 define MSG_HEADER_FILE
-$(MAGENTA)[HEAD]$(NC) $@\n
+$(MAGENTA)[HEAD]   $(NC) $@\n
 endef
 
 define MSG_DASM_FILE
-$(MAGENTA)[DASM]$(NC) $@\n
+$(MAGENTA)[DASM]   $(NC) $@\n
+endef
+
+define MSG_COMPILE_C_TEST_FILE
+$(MAGENTA)[TEST_CC]$(NC) $@\n
+endef
+
+define MSG_LINK_TEST
+$(MAGENTA)[TEST_LD]$(NC) $@\n
 endef
