@@ -10,3 +10,9 @@
 [submodule "test/framework/bats-file"]
 	path = test/framework/bats-file
 	url = https://github.com/bats-core/bats-file.git
+[submodule "test/framework/unity"]
+	path = test/framework/unity
+	url = https://github.com/ThrowTheSwitch/Unity.git
+[submodule "test/framework/fff"]
+	path = test/framework/fff
+	url = https://github.com/meekrosoft/fff.git
