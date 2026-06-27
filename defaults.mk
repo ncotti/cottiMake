@@ -112,3 +112,7 @@ EXEFLAGS ?=
 #------------------------------------------------------------------------------
 # Name of the folder where all build artifacts will be generated
 BUILD_DIR ?= build
+
+CLANG_TIDY_CONFIG_FILE ?= $(MAKE_ROOT)/.clang-tidy
+
+CLANG_FORMAT_CONFIG_FILE ?= $(MAKE_ROOT)/.clang-format

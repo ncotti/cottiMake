@@ -88,6 +88,9 @@ OBJS := $(patsubst %.s, %_asm.o, $(OBJS))
 OBJS := $(patsubst %.S, %_asm.o, $(OBJS))
 OBJS := $(sort $(OBJS))
 
+HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
+HEADERS := $(sort $(HEADERS))
+
 DEPS := $(patsubst %.o, %.d, $(OBJS))
 
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
@@ -104,30 +107,26 @@ LD_LIBRARY_PATH := $(if $(LD_LIBRARY_PATH),$(LIB_DIRS):$(LD_LIBRARY_PATH),$(LIB_
 #------------------------------------------------------------------------------
 # User targets
 #------------------------------------------------------------------------------
-
-# When you call "make compile", the Makefile will be re-called but prepending
-# the "scan-build bear -- make p_compile"
-# .PHONY: compile ## Compile all source code, generate ELF file.
-# compile: $(BUILD_SRC_DIRS)
-# # if [ ! -f $(COMPILE_COMMANDS) ]; then \
-# # 	scan-build -o $(SCAN_BUILD_DIR) bear --output $(COMPILE_COMMANDS) -- $(MAKE) p_compile; \
-# # else \
-# # 	scan-build --use-cc=$(CC) -o $(SCAN_BUILD_DIR) -V $(MAKE) p_compile; \
-# # fi
-# 	if [ ! -f $(COMPILE_COMMANDS) ]; then \
-# 		bear --output $(COMPILE_COMMANDS) -- $(MAKE) p_compile; \
-# 	else \
-# 		$(MAKE) p_compile; \
-# 	fi
-# 	$(MAKE) tidy
-
 .PHONY: compile ## Private compile command
 compile: $(ELF)
 
 .PHONY: tidy ## Do static analysis with clang-tidy
-tidy: $(SRCS)
-	clang-tidy --verify-config
-	clang-tidy $^ -p $(COMPILE_COMMANDS)
+tidy: $(COMPILE_COMMANDS)
+	printf "$(MSG_TIDY)"
+	clang-tidy --verify-config --quiet 1>/dev/null
+	clang-tidy -p $(BUILD_DIR) \
+		--config-file=$(CLANG_TIDY_CONFIG_FILE) \
+		--quiet \
+		$(SRCS)
+
+.PHONY: format ## Code formatter with clang-format
+format: $(COMPILE_COMMANDS)
+	printf "$(MSG_FORMAT)"
+	clang-format \
+		--style="file:$(CLANG_FORMAT_CONFIG_FILE)" \
+		-i \
+		--verbose \
+		$(SRCS) $(HEADERS)
 
 .PHONY: help ## Display this message.
 help:
@@ -215,8 +214,17 @@ $(BIN): $(ELF)
 	$(T_OBJCOPY) -O binary $(ELF) $(BIN)
 
 # Folders
-$(BUILD_SRC_DIRS):
+$(BUILD_SRC_DIRS) $(BUILD_DIR):
 	mkdir -p $@
+
+# Since the compile_commands.json should only be re-created when a new
+# header or source file appears, not when they change; it does not have
+# $(SRCS) or $(HEADERS) as prerequisites.
+# It will only be re-created after a make clean
+$(COMPILE_COMMANDS):
+	mkdir -p $(BUILD_DIR)
+	bear --output $(COMPILE_COMMANDS) -- \
+		$(MAKE) -B --no-print-directory $(OBJS)
 
 # Empty rule for miscellaneous dependencies
 $(MISC_DEPS):

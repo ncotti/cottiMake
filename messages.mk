@@ -106,6 +106,17 @@ define MSG_SIM_CLOSING
 $(BOLD_MAGENTA)Closing automatically in $(SIM_TIMEOUT_TO_EXIT) seconds.\nOutput will be sent to $(SIM_OUTPUT_FILE)$(NC)\n
 endef
 
+define MSG_TIDY
+$(BOLD_MAGENTA)Running static analyzer:$(NC)\n
+endef
+
+define MSG_TIDY_DONE
+endef
+
+define MSG_FORMAT
+$(BOLD_MAGENTA)Running formatter:$(NC)\n
+endef
+
 #------------------------------------------------------------------------------
 # Compilation step messages
 #------------------------------------------------------------------------------
