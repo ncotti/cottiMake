@@ -112,24 +112,6 @@ LD_LIBRARY_PATH := $(if $(LD_LIBRARY_PATH),$(LIB_DIRS):$(LD_LIBRARY_PATH),$(LIB_
 .PHONY: compile ## Private compile command
 compile: $(ELF)
 
-.PHONY: tidy ## Do static analysis with clang-tidy
-tidy: $(COMPILE_COMMANDS)
-	printf "$(MSG_TIDY)"
-	clang-tidy --verify-config --quiet 1>/dev/null
-	clang-tidy -p $(BUILD_DIR) \
-		--config-file=$(CLANG_TIDY_CONFIG_FILE) \
-		--quiet \
-		$(C_SRCS)
-
-.PHONY: format ## Code formatter with clang-format
-format: $(COMPILE_COMMANDS)
-	printf "$(MSG_FORMAT)"
-	clang-format \
-		--style="file:$(CLANG_FORMAT_CONFIG_FILE)" \
-		-i \
-		--verbose \
-		$(C_SRCS) $(C_HEADERS)
-
 .PHONY: help ## Display this message.
 help:
 	grep -E '^\.PHONY:.*## .*$$' $(MAKE_ROOT)/*.mk \
@@ -170,13 +152,31 @@ debug: $(ELF)
 
 include $(MAKE_ROOT)/test_targets.mk
 
-include $(MAKE_ROOT)/print_targets.mk
-
 include $(MAKE_ROOT)/info_targets.mk
 
 include $(MAKE_ROOT)/simulation_targets.mk
 
 include $(MAKE_ROOT)/lib_targets.mk
+
+include $(MAKE_ROOT)/print_targets.mk
+
+.PHONY: tidy ## Do static analysis with clang-tidy
+tidy: $(COMPILE_COMMANDS)
+	printf "$(MSG_TIDY)"
+	clang-tidy --verify-config --quiet 1>/dev/null
+	clang-tidy -p $(BUILD_DIR) \
+		--config-file=$(CLANG_TIDY_CONFIG_FILE) \
+		--quiet \
+		$(C_SRCS) $(TEST_SRCS)
+
+.PHONY: format ## Code formatter with clang-format
+format: $(COMPILE_COMMANDS)
+	printf "$(MSG_FORMAT)"
+	clang-format \
+		--style="file:$(CLANG_FORMAT_CONFIG_FILE)" \
+		-i \
+		--verbose \
+		$(C_SRCS) $(C_HEADERS) $(TEST_SRCS)
 
 #------------------------------------------------------------------------------
 # Compilation targets
@@ -218,7 +218,7 @@ $(BUILD_SRC_DIRS) $(BUILD_DIR):
 $(COMPILE_COMMANDS):
 	mkdir -p $(BUILD_DIR)
 	bear --output $(COMPILE_COMMANDS) -- \
-		$(MAKE) -B --no-print-directory $(OBJS)
+		$(MAKE) -B --no-print-directory $(OBJS) $(TEST_OBJS) $(TEST_FRAMEWORK_OBJS)
 
 # Empty rule for miscellaneous dependencies
 $(MISC_DEPS):

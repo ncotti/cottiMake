@@ -6,6 +6,33 @@
 
 GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
 
+ALL_SRC_DIRS := $(SRC_DIRS) $(TEST_SRC_DIRS) $(TEST_FRAMEWORK_SRC_DIRS)
+ALL_INC_DIRS := $(INC_DIRS) $(TEST_INC_DIRS)
+
+# If any of the paths contain a double "..", convert them
+# to absolute paths
+override SRC_DIRS := $(foreach dir,$(SRC_DIRS),\
+    $(if $(findstring ..,$(dir)),$(realpath $(dir)),$(dir)))
+override INC_DIRS := $(foreach dir,$(INC_DIRS),\
+    $(if $(findstring ..,$(dir)),$(realpath $(dir)),$(dir)))
+
+override TEST_SRC_DIRS := $(foreach dir,$(TEST_SRC_DIRS),\
+    $(if $(findstring ..,$(dir)),$(realpath $(dir)),$(dir)))
+override TEST_INC_DIRS := $(foreach dir,$(TEST_INC_DIRS),\
+    $(if $(findstring ..,$(dir)),$(realpath $(dir)),$(dir)))
+
+override TEST_FRAMEWORK_SRC_DIRS := $(foreach dir,$(TEST_FRAMEWORK_SRC_DIRS),\
+    $(if $(findstring ..,$(dir)),$(realpath $(dir)),$(dir)))
+
+
+SRC_DIRS := $(sort $(SRC_DIRS))
+INC_DIRS := $(sort $(INC_DIRS))
+
+TEST_SRC_DIRS := $(sort $(TEST_SRC_DIRS))
+TEST_INC_DIRS := $(sort $(TEST_INC_DIRS))
+
+TEST_FRAMEWORK_SRC_DIRS := $(sort $(TEST_FRAMEWORK_SRC_DIRS))
+
 #------------------------------------------------------------------------------
 # SRC_DIRS and INC_DIRS checking
 #------------------------------------------------------------------------------
@@ -18,30 +45,25 @@ $(error $(MSG_NO_SRC_DIRS))
 endif
 
 # There should not be duplicates in SRC_DIRS
-DUPLICATES := $(shell printf "%s\n" $(strip $(SRC_DIRS)) | tr ' ' '\n' | sort | uniq -d)
+DUPLICATES := $(shell printf "%s\n" $(strip $(ALL_SRC_DIRS)) | tr ' ' '\n' | sort | uniq -d)
 ifneq ($(strip $(DUPLICATES)),)
 $(error $(MSG_REPEATED_SRC_DIRS) $(DUPLICATES))
 endif
 
 # There should not be duplicates in INC_DIRS
-DUPLICATES := $(shell printf "%s\n" $(strip $(INC_DIRS)) | tr ' ' '\n' | sort | uniq -d)
+DUPLICATES := $(shell printf "%s\n" $(strip $(ALL_INC_DIRS)) | tr ' ' '\n' | sort | uniq -d)
 ifneq ($(strip $(DUPLICATES)),)
 $(error $(MSG_REPEATED_INC_DIRS) $(DUPLICATES))
 endif
 
-# By sorting, duplicates are removed (although we have checked for duplicates
-# before)
-SRC_DIRS := $(sort $(SRC_DIRS))
-INC_DIRS := $(sort $(INC_DIRS))
-
 # All source directories must exist and be directories
-NOT_DIRS := $(foreach dir, $(SRC_DIRS), $(shell [ ! -d $(dir) ] && echo "$(dir)"))
+NOT_DIRS := $(foreach dir, $(ALL_SRC_DIRS), $(shell [ ! -d $(dir) ] && echo "$(dir)"))
 ifneq ($(strip $(NOT_DIRS)),)
 $(error $(MSG_WRONG_SRC_DIRS) $(NOT_DIRS))
 endif
 
 # Source directories must not be empty
-EMPTY_DIRS := $(foreach dir,$(SRC_DIRS), \
+EMPTY_DIRS := $(foreach dir,$(ALL_SRC_DIRS), \
   $(shell find "$(dir)" -maxdepth 1 \
     \( -name "*.c" -o -name "*.s" -o -name "*.S" \) \
     -print -quit | grep -q . || echo "$(dir)"))
@@ -50,13 +72,13 @@ $(error $(MSG_EMPTY_SRC_DIR) $(EMPTY_DIRS))
 endif
 
 # All include directories must exist and be directories
-NOT_DIRS := $(foreach dir, $(INC_DIRS), $(shell [ ! -d $(dir) ] && echo "$(dir)"))
+NOT_DIRS := $(foreach dir, $(ALL_INC_DIRS), $(shell [ ! -d $(dir) ] && echo "$(dir)"))
 ifneq ($(strip $(NOT_DIRS)),)
 $(error $(MSG_WRONG_INC_DIRS) $(NOT_DIRS))
 endif
 
 # Include directories must not be empty
-EMPTY_DIRS := $(foreach dir,$(INC_DIRS), \
+EMPTY_DIRS := $(foreach dir,$(ALL_INC_DIRS), \
   $(shell find "$(dir)" -maxdepth 1 \
     \( -name "*.h" -o -name "*.s" -o -name "*.S" \) \
       -print -quit | grep -q . || echo "$(dir)"))

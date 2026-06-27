@@ -70,6 +70,20 @@ teardown_file() {
     assert_output --partial "${not_dir1}"
 
     run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir2}" \
+        TEST_SRC_DIRS="${src_dir1} ${not_dir1}"
+    assert_failure
+    assert_output --partial "[ERROR #002]"
+    assert_output --partial "${not_dir1}"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir2}" \
+        TEST_FRAMEWORK_SRC_DIRS="${src_dir1} ${not_dir1}"
+    assert_failure
+    assert_output --partial "[ERROR #002]"
+    assert_output --partial "${not_dir1}"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${not_dir1} ${not_dir2}"
     assert_failure
     assert_output --partial "[ERROR #002]"
@@ -92,12 +106,36 @@ teardown_file() {
     assert_output --partial "[ERROR #002]"
     assert_output --partial "${src_file1}"
     assert_output --partial "${src_file2}"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir2}" \
+        TEST_SRC_DIRS="${src_dir1} ${src_file1} ${src_file2}"
+    assert_failure
+    assert_output --partial "[ERROR #002]"
+    assert_output --partial "${src_file1}"
+    assert_output --partial "${src_file2}"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir2}" \
+        TEST_FRAMEWORK_SRC_DIRS="${src_dir1} ${src_file1} ${src_file2}"
+    assert_failure
+    assert_output --partial "[ERROR #002]"
+    assert_output --partial "${src_file1}"
+    assert_output --partial "${src_file2}"
 }
 
 @test "Compiling with not existent INC_DIRS should fail" {
     run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${inc_dir1} ${inc_dir2} ${not_dir1} ${not_dir2}"
+    assert_failure
+    assert_output --partial "[ERROR #003]"
+    assert_output --partial "${not_dir1}"
+    assert_output --partial "${not_dir2}"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        TEST_INC_DIRS="${inc_dir1} ${inc_dir2} ${not_dir1} ${not_dir2}"
     assert_failure
     assert_output --partial "[ERROR #003]"
     assert_output --partial "${not_dir1}"
@@ -119,11 +157,24 @@ teardown_file() {
     assert_failure
     assert_output --partial "[ERROR #005]"
     assert_output --partial "${empty_dir}"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        TEST_INC_DIRS="${empty_dir}"
+    assert_failure
+    assert_output --partial "[ERROR #005]"
+    assert_output --partial "${empty_dir}"
 }
 
 @test "Repeated source directories should fail" {
     run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1} ${src_dir1}"
+    assert_output --partial "[ERROR #006]"
+    assert_output --partial "${src_dir1}"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        TEST_SRC_DIRS="${src_dir1}"
     assert_output --partial "[ERROR #006]"
     assert_output --partial "${src_dir1}"
 }
@@ -132,6 +183,13 @@ teardown_file() {
     run make -C "${MAKE_DIR}" -f cottimake.mk compile \
         SRC_DIRS="${src_dir1}" \
         INC_DIRS="${inc_dir1} ${inc_dir1} ${inc_dir2}"
+    assert_output --partial "[ERROR #007]"
+    assert_output --partial "${inc_dir1}"
+
+    run make -C "${MAKE_DIR}" -f cottimake.mk compile \
+        SRC_DIRS="${src_dir1}" \
+        INC_DIRS="${inc_dir1}" \
+        TEST_INC_DIRS="${inc_dir1}"
     assert_output --partial "[ERROR #007]"
     assert_output --partial "${inc_dir1}"
 }
