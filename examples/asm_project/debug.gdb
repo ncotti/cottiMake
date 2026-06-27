@@ -4,7 +4,7 @@ target remote localhost:2159
 set logging file build/debug_log.txt
 set logging overwrite on
 
-break src/main.c:7
+break src/main.c:10
     commands
     printf "Value retrieved from gdb: %d\n", a
 end
