@@ -7,24 +7,29 @@
 #------------------------------------------------------------------------------
 # Variables
 #------------------------------------------------------------------------------
+# Base directory where information will be stored
 INFO_DIR 	:= $(BUILD_DIR)/info
 
+# Object file information headers
 OBJ_HEADERS := $(patsubst %.o, %.header, $(OBJS) $(ELF))
 OBJ_HEADERS := $(patsubst %.elf, %.header, $(OBJ_HEADERS))
 OBJ_HEADERS := $(patsubst $(BUILD_DIR)%, $(INFO_DIR)%, $(OBJ_HEADERS))
 
+# Disassembly files
 DASM_FILES := $(patsubst %.header, %.d, $(OBJ_HEADERS))
 
+# Directories of all info artifacts
 INFO_SRC_DIRS := $(addprefix $(INFO_DIR)/, $(SRC_DIRS))
 
-#MAP			:= $(INFO_DIR)/memory.map
+# Name of the memory map file
+MAP			:= $(INFO_DIR)/memory.map
 
-# If you use "ld" or "gcc" as linker, the memory map option is declared different
-# ifneq (,$(findstring -ld, $(T_LD)))
-# LDFLAGS += -Map $(MAP)
-# else
-# LDFLAGS += -Wl,-Map=$(MAP)
-# endif
+#If you use "ld" or "gcc" as linker, the memory map option is declared different
+ifneq (,$(findstring ld, $(T_LD)))
+EXTRA_LDFLAGS += -Map $(MAP)
+else
+EXTRA_LDFLAGS += -Wl,-Map=$(MAP)
+endif
 
 #------------------------------------------------------------------------------
 # User targets
@@ -59,5 +64,6 @@ $(INFO_DIR)/%.d: $(BUILD_DIR)/%.elf | $(INFO_SRC_DIRS)
 	$(T_OBJDUMP) -d $< > $@
 
 # Create folders
-$(INFO_SRC_DIRS):
+$(INFO_SRC_DIRS) $(INFO_DIR):
 	mkdir -p $@
+

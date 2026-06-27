@@ -45,13 +45,21 @@ T_OBJCOPY 	:= $(CROSS_COMPILE)$(OBJCOPY)
 T_AR		:= $(CROSS_COMPILE)$(AR)
 T_GDB		:= $(CROSS_COMPILE)$(GDB)
 
-EXTRA_GDBFLAGS := -q
+# GDB flags that are always included, on top of the ones provided by the user
+EXTRA_GDBFLAGS += -q
 ifneq (,$(GDBSCRIPT))
 EXTRA_GDBFLAGS += -x $(GDBSCRIPT)
 endif
 
+# C compiler flags that are always included, on top of the ones provided by the user
 # Add dependency generation flags for compiler
-EXTRA_CFLAGS := -MMD -MP
+EXTRA_CFLAGS += -MMD -MP
+
+# Linker flags that are always included, on top of the ones provided by the user
+# Utilize linker script provided by the user
+ifneq (,$(LDSCRIPT))
+EXTRA_LDFLAGS += -T $(LDSCRIPT)
+endif
 
 # If you are using the C compiler for assembly files, use all the extra
 # cflags for assembling
@@ -65,53 +73,51 @@ include $(MAKE_ROOT)/arg_check.mk
 #------------------------------------------------------------------------------
 # File location
 #------------------------------------------------------------------------------
+# Generated .elf and .bin files
 ELF 		:= $(BUILD_DIR)/$(EXE).elf
 BIN 		:= $(BUILD_DIR)/$(EXE).bin
 
-COMPILE_COMMANDS := $(BUILD_DIR)/compile_commands.json
-SCAN_BUILD_DIR := $(BUILD_DIR)/scan_build
-
-ifneq (,$(LDSCRIPT))
-EXTRA_LDFLAGS := -T $(LDSCRIPT)
-endif
-
+# Source files
 C_SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c))
 ASM_SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
 SRCS := $(sort $(C_SRCS) $(ASM_SRCS))
 
+# Header files and flags for compilation
 HEADER_FLAGS := $(addprefix -I,$(INC_DIRS))
 LIB_FLAGS := $(addprefix -L,$(LIB_DIRS))
 LIB_FLAGS += $(addprefix -l,$(LDLIBS))
 
+C_HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h))
+ASM_HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
+HEADERS := $(sort $(C_HEADERS) $(ASM_HEADERS))
+
+# Object files. Assembly files have the "_asm" suffix added to account for the
+# possibility of a ".c" and ".S" file with the same name.
 OBJS := $(addprefix $(BUILD_DIR)/, $(SRCS))
 OBJS := $(patsubst %.c, %.o, $(OBJS))
 OBJS := $(patsubst %.s, %_asm.o, $(OBJS))
 OBJS := $(patsubst %.S, %_asm.o, $(OBJS))
 OBJS := $(sort $(OBJS))
 
-C_HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h))
-ASM_HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
-HEADERS := $(sort $(C_HEADERS) $(ASM_HEADERS))
-
+# Dependency files generated with the "-MMD" flag
 DEPS := $(patsubst %.o, %.d, $(OBJS))
 
+# Directories for all the compilation artifacts
 BUILD_SRC_DIRS := $(addprefix $(BUILD_DIR)/, $(SRC_DIRS))
 
+# Miscellaneous dependencies that should trigger source file recompilation
 MISC_DEPS := $(LDSCRIPT) $(MAKE_ORIGIN)
 
-# Strip handles multiple spaces in between values
-override LIB_DIRS := $(strip $(LIB_DIRS))
-
-override LIB_DIRS := $(subst $(SPACE),:,$(LIB_DIRS))
-
-LD_LIBRARY_PATH := $(if $(LD_LIBRARY_PATH),$(LIB_DIRS):$(LD_LIBRARY_PATH),$(LIB_DIRS))
+# Transform white-space separated library directories into colon separated
+# ones to be prepended to the LD_LIBRARY_PATH variable, so that when linking
+# the libraries can be found
+LIB_DIRS_COLON := $(strip $(LIB_DIRS))
+LIB_DIRS_COLON := $(subst $(SPACE),:,$(LIB_DIRS_COLON))
+override LD_LIBRARY_PATH := $(if $(LD_LIBRARY_PATH),$(LIB_DIRS_COLON):$(LD_LIBRARY_PATH),$(LIB_DIRS_COLON))
 
 #------------------------------------------------------------------------------
 # User targets
 #------------------------------------------------------------------------------
-.PHONY: compile ## Private compile command
-compile: $(ELF)
-
 .PHONY: help ## Display this message.
 help:
 	grep -E '^\.PHONY:.*## .*$$' $(MAKE_ROOT)/*.mk \
@@ -119,6 +125,9 @@ help:
 	| awk 'BEGIN {FS=":|## "}; \
 	       {gsub(/^[ \t]+|[ \t]+$$/, "", $$3); \
 	        printf "$(BOLD_CYAN)%-12s$(NC) %s\n", $$3, $$4}'
+
+.PHONY: compile ## Compile source files and generate executable
+compile: $(ELF)
 
 .PHONY: bin ## Generate binary file, without ELF headers.
 bin: $(BIN)
@@ -150,39 +159,23 @@ debug: $(ELF)
 	$(T_GDB) $(GDBFLAGS) $(EXTRA_GDBFLAGS) $(ELF)
 	$(MAKE) --no-print-directory kill_sim
 
-include $(MAKE_ROOT)/test_targets.mk
+include $(MAKE_ROOT)/print_targets.mk
 
 include $(MAKE_ROOT)/info_targets.mk
+
+include $(MAKE_ROOT)/test_targets.mk
 
 include $(MAKE_ROOT)/simulation_targets.mk
 
 include $(MAKE_ROOT)/lib_targets.mk
 
-include $(MAKE_ROOT)/print_targets.mk
-
-.PHONY: tidy ## Do static analysis with clang-tidy
-tidy: $(COMPILE_COMMANDS)
-	printf "$(MSG_TIDY)"
-	clang-tidy --verify-config --quiet 1>/dev/null
-	clang-tidy -p $(BUILD_DIR) \
-		--config-file=$(CLANG_TIDY_CONFIG_FILE) \
-		--quiet \
-		$(C_SRCS) $(TEST_SRCS)
-
-.PHONY: format ## Code formatter with clang-format
-format: $(COMPILE_COMMANDS)
-	printf "$(MSG_FORMAT)"
-	clang-format \
-		--style="file:$(CLANG_FORMAT_CONFIG_FILE)" \
-		-i \
-		--verbose \
-		$(C_SRCS) $(C_HEADERS) $(TEST_SRCS)
+include $(MAKE_ROOT)/tidy_targets.mk
 
 #------------------------------------------------------------------------------
 # Compilation targets
 #------------------------------------------------------------------------------
 # Main executable linking
-$(ELF): $(OBJS)
+$(ELF): $(OBJS) | $(INFO_DIR)
 	printf "$(MSG_LINK)"
 	$(T_LD) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS) $(LIB_FLAGS)
 	printf "$(MSG_COMPILE_OK)"
@@ -210,15 +203,6 @@ $(BIN): $(ELF)
 # Folders
 $(BUILD_SRC_DIRS) $(BUILD_DIR):
 	mkdir -p $@
-
-# Since the compile_commands.json should only be re-created when a new
-# header or source file appears, not when they change; it does not have
-# $(SRCS) or $(HEADERS) as prerequisites.
-# It will only be re-created after a make clean
-$(COMPILE_COMMANDS):
-	mkdir -p $(BUILD_DIR)
-	bear --output $(COMPILE_COMMANDS) -- \
-		$(MAKE) -B --no-print-directory $(OBJS) $(TEST_OBJS) $(TEST_FRAMEWORK_OBJS)
 
 # Empty rule for miscellaneous dependencies
 $(MISC_DEPS):

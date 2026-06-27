@@ -108,17 +108,29 @@ EXE ?= exe
 EXEFLAGS ?=
 
 #------------------------------------------------------------------------------
+# Test framework variables
+#------------------------------------------------------------------------------
+# White-space separated list of paths where test files are.
+# Every single ".c" file located in these directories will be treated as a
+# test case and will be executed independently from the rest.
+TEST_SRC_DIRS ?=
+
+# White-space separated list of paths where header files ".h" for the test are.
+TEST_INC_DIRS ?=
+
+# White-space separated list of paths where supporting sources for test cases
+# are. These files will be compiled alongside test cases found in
+# TEST_SRC_DIRS, but will not be executed themselves.
+TEST_FRAMEWORK_SRC_DIRS ?=
+
+#------------------------------------------------------------------------------
 # Extra variables TODO better name?
 #------------------------------------------------------------------------------
 # Name of the folder where all build artifacts will be generated
 BUILD_DIR ?= build
 
+# Name of the clang-tidy configuration file
 CLANG_TIDY_CONFIG_FILE ?= $(MAKE_ROOT)/.clang-tidy
 
+# Name of the clang-format configuration file
 CLANG_FORMAT_CONFIG_FILE ?= $(MAKE_ROOT)/.clang-format
-
-TEST_SRC_DIRS ?=
-TEST_INC_DIRS ?=
-
-TEST_FRAMEWORK_SRC_DIRS ?=
-

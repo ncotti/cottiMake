@@ -4,13 +4,19 @@
 ## This file ensures that all user-defined variables are correct before
 ## proceeding with any compilation step
 
+#------------------------------------------------------------------------------
+# Clean-up any "rubbish" from the user input
+#------------------------------------------------------------------------------
+# The goal that was used when calling this Makefile, as "make <goal>"
 GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
 
+# Checks will be done on the raw sum of source and include files
 ALL_SRC_DIRS := $(SRC_DIRS) $(TEST_SRC_DIRS) $(TEST_FRAMEWORK_SRC_DIRS)
 ALL_INC_DIRS := $(INC_DIRS) $(TEST_INC_DIRS)
 
-# If any of the paths contain a double "..", convert them
-# to absolute paths
+# If any of the paths contains a double "..", convert them to absolute paths
+# "override" is used to enforce this change, even if these variables where
+# passed from the command-line.
 override SRC_DIRS := $(foreach dir,$(SRC_DIRS),\
     $(if $(findstring ..,$(dir)),$(realpath $(dir)),$(dir)))
 override INC_DIRS := $(foreach dir,$(INC_DIRS),\
@@ -24,14 +30,12 @@ override TEST_INC_DIRS := $(foreach dir,$(TEST_INC_DIRS),\
 override TEST_FRAMEWORK_SRC_DIRS := $(foreach dir,$(TEST_FRAMEWORK_SRC_DIRS),\
     $(if $(findstring ..,$(dir)),$(realpath $(dir)),$(dir)))
 
-
-SRC_DIRS := $(sort $(SRC_DIRS))
-INC_DIRS := $(sort $(INC_DIRS))
-
-TEST_SRC_DIRS := $(sort $(TEST_SRC_DIRS))
-TEST_INC_DIRS := $(sort $(TEST_INC_DIRS))
-
-TEST_FRAMEWORK_SRC_DIRS := $(sort $(TEST_FRAMEWORK_SRC_DIRS))
+# Sort files
+override SRC_DIRS := $(sort $(SRC_DIRS))
+override INC_DIRS := $(sort $(INC_DIRS))
+override TEST_SRC_DIRS := $(sort $(TEST_SRC_DIRS))
+override TEST_INC_DIRS := $(sort $(TEST_INC_DIRS))
+override TEST_FRAMEWORK_SRC_DIRS := $(sort $(TEST_FRAMEWORK_SRC_DIRS))
 
 #------------------------------------------------------------------------------
 # SRC_DIRS and INC_DIRS checking
@@ -142,4 +146,4 @@ ifeq ($(shell command -v $(TERMINAL) 2>/dev/null),)
 $(error $(MSG_INVALID_TERMINAL) $(TERMINAL))
 endif
 
-endif # SRC_DIRS and INC_DIRS
+endif # Compilation targets

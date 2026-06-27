@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026  Nicolas Gabriel Cotti
 
-## This contains color definitions
+## This file contains color definitions
 
 #------------------------------------------------------------------------------
 # Colors to be used inside "printf" statements

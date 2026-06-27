@@ -120,6 +120,8 @@ endef
 #------------------------------------------------------------------------------
 # Compilation step messages
 #------------------------------------------------------------------------------
+# Note: all these messages must have a consistent spacing between the closing
+# bracket "]" and the "$(NC)" variable
 define MSG_COMPILE_C_FILE
 $(MAGENTA)[CC]     $(NC) $<\n
 endef

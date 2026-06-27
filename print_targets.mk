@@ -1,6 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026  Nicolas Gabriel Cotti
 
+## This file contains the "make print[_XXX]" targets
+
+#------------------------------------------------------------------------------
+# Print targets
+#------------------------------------------------------------------------------
 .PHONY: print_src ## Print source files
 print_src:
 	printf "$(BOLD_MAGENTA)Source files:$(NC)\n"

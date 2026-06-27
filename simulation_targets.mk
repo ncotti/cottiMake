@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026  Nicolas Gabriel Cotti
 
+## This file contains the variables and targets required to run a simulation
+## from the compiled $(ELF) file.
+
 #------------------------------------------------------------------------------
 # Simulation variables
 #------------------------------------------------------------------------------
