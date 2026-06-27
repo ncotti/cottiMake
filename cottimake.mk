@@ -75,8 +75,9 @@ ifneq (,$(LDSCRIPT))
 EXTRA_LDFLAGS := -T $(LDSCRIPT)
 endif
 
-SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c) $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
-SRCS := $(sort $(SRCS))
+C_SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.c))
+ASM_SRCS := $(foreach dir, $(SRC_DIRS), $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
+SRCS := $(sort $(C_SRCS) $(ASM_SRCS))
 
 HEADER_FLAGS := $(addprefix -I,$(INC_DIRS))
 LIB_FLAGS := $(addprefix -L,$(LIB_DIRS))
@@ -88,8 +89,9 @@ OBJS := $(patsubst %.s, %_asm.o, $(OBJS))
 OBJS := $(patsubst %.S, %_asm.o, $(OBJS))
 OBJS := $(sort $(OBJS))
 
-HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h) $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
-HEADERS := $(sort $(HEADERS))
+C_HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.h))
+ASM_HEADERS := $(foreach dir, $(INC_DIRS), $(wildcard $(dir)/*.s) $(wildcard $(dir)/*.S))
+HEADERS := $(sort $(C_HEADERS) $(ASM_HEADERS))
 
 DEPS := $(patsubst %.o, %.d, $(OBJS))
 
@@ -117,7 +119,7 @@ tidy: $(COMPILE_COMMANDS)
 	clang-tidy -p $(BUILD_DIR) \
 		--config-file=$(CLANG_TIDY_CONFIG_FILE) \
 		--quiet \
-		$(SRCS)
+		$(C_SRCS)
 
 .PHONY: format ## Code formatter with clang-format
 format: $(COMPILE_COMMANDS)
@@ -126,7 +128,7 @@ format: $(COMPILE_COMMANDS)
 		--style="file:$(CLANG_FORMAT_CONFIG_FILE)" \
 		-i \
 		--verbose \
-		$(SRCS) $(HEADERS)
+		$(C_SRCS) $(C_HEADERS)
 
 .PHONY: help ## Display this message.
 help:
