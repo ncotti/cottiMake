@@ -2,8 +2,8 @@
 // Copyright (C) 2026  Nicolas Gabriel Cotti
 
 #include "main.h"
-#include "helper.h"
 #include "add.h"
+#include "helper.h"
 #include <stdio.h>
 
 int main(void) {
