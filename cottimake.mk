@@ -120,7 +120,7 @@ override LD_LIBRARY_PATH := $(if $(LD_LIBRARY_PATH),$(LIB_DIRS_COLON):$(LD_LIBRA
 #------------------------------------------------------------------------------
 .PHONY: help ## Display this message.
 help:
-	grep -E '^\.PHONY:.*## .*$$' $(MAKE_ROOT)/*.mk \
+	grep -E '^\.PHONY:.*## .*$$' $(MAKE_ROOT)/*.mk $(MAKE_ORIGIN) \
 	| sort \
 	| awk 'BEGIN {FS=":|## "}; \
 	       {gsub(/^[ \t]+|[ \t]+$$/, "", $$3); \
